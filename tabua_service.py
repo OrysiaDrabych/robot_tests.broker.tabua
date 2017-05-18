@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import urllib
+
 def update_test_data(role_name, tender_data):
     if role_name == 'tender_owner':
         tender_data['data']['procuringEntity']['name'] = u'ПАТ "Тест Банк"'
@@ -152,3 +154,56 @@ def convert_prom_string_to_common_string(string):
         u"Впервые": u"Лот виставляється вперше",
         u"Повторно": u"Лот виставляється повторно",
     }.get(string, string)
+
+def convert_string_to_integer(_str):
+    return {
+        u"Вперше.": 1,
+        u"Вдруге": 2,
+        u"Втрете": 3,
+        u"Вчетверте": 4,
+    }.get(_str, _str)
+
+def compare_two_strings(str_1, str_2):
+    return str_1 == str_2
+
+def convert_to_price(dol, cent):
+    return float(dol.replace(u'"', '').replace(u' ', ''))
+
+
+def convert_tabua_string_to_common_string(string):
+    return {
+        u"грн.": u"UAH",
+        u"шт.": u"штуки",
+        u"кв.м.": u"метри квадратні",
+        u"метры квадратные": u"метри квадратні",
+        u" з ПДВ": True,
+        u"Класифікатор:": u"CAV",
+        u'document_type_x_dgfplatformlegaldetails': u'x_dgfPlatformLegalDetails',
+        u'document_type_x_dgfpublicassetcertificate': u'x_dgfpublicassetcertificate',
+        u'document_type_x_nda': u'x_nda',
+        u'document_type_virtualdataroom': u'virtualdataroom',
+        u'document_type_tendernotice': u'tendernotice',
+        u'document_type_x_presentation': u'x_presentation',
+        u'document_type_technicalspecifications': u'technicalspecifications',
+        u"document_type_": u"None",
+        u"Очікування пропозицій": u"active.auction",
+        u"Період аукціону": u"active.auction",
+        u"Пропозиції розглянуто": u"active.awarded",
+        u"Кваліфікація": u"active.qualification",
+        u"Завершений": u"complete",
+        u"Відмінений": u"cancelled",
+        u"Аукціон" : u"active.auction",
+        u"Аукціон не відбувся" : u"unsuccessful",
+    }.get(string, string)
+
+def attemp_to_integer(_str):
+    return {
+        u"Вперше": 1,
+        u"Вдруге": 2,
+        u"Втрете": 3,
+        u"Вчетверте": 4,
+    }.get(_str, _str)
+
+def download_file(url, file_name, output_dir):
+    urllib.urlretrieve(url, ('{}/{}'.format(output_dir, file_name)))
+

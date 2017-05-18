@@ -7,11 +7,6 @@ Library  Collections
 Library  BuiltIn
 
 *** Variables ***
-${TENDER_UAID_H}                                         UA-EA-2017-05-15-000083-1
-
-${HOME_PAGE}                                           http://staging_sale.tab.com.ua/
-${AUCTION_PAGE}                                        http://staging_sale.tab.com.ua/auctions
-${EligibilityCriteria}                                 Only licensed financial institutions are eligible to participate.
 
 # Auction creation locators
 ${locator.title}                     id=prozorro_auction_title_ua                         # Lot number (name) according to DGF
@@ -68,7 +63,7 @@ Login
   Input Text   id=user_password   ${USERS.users['${ARGUMENTS[0]}'].password}
   Click Element   xpath=//input[@type="submit"]
   Sleep     2
-  Go To  ${HOME_PAGE}
+  Go To  ${BROKERS['tabua'].startpage}
   Wait Until Page Contains Element   xpath=//span[@class="button menu_btn is_logged"]   20
   Sleep     2
   Log To Console   Success logging in as Some one - ${ARGUMENTS[0]}
@@ -111,7 +106,7 @@ Login
 #  Wait Until Page Contains Element   xpath=//a[contains(text(), "Мої аукціони")]   20
 #  Click Link                         xpath=//a[contains(text(), "Мої аукціони")]
 
-  Go To  ${AUCTION_PAGE}
+  Go To  ${BROKERS['tabua'].auctionpage}
   Wait Until Page Contains Element   xpath=//a[contains(text(), "Створити новий аукціон")]   20
   Click Link                         xpath=//a[contains(text(), "Створити новий аукціон")]
 
@@ -131,13 +126,10 @@ Login
   Input Text   xpath=//input[@id="prozorro_auction_dgf_decision_id"]    ${dgfDecisionID}
   Input Text   xpath=//input[@id="prozorro_auction_dgf_decision_date"]  ${dgfDecisionDate}
   ${tender_attempts}=   Convert To String   ${tenderAttempts}
-  Log To Console    attempts - '${tender_attempts}'
   Select From List By Value   xpath=//select[@id="prozorro_auction_tender_attempts"]    ${tender_attempts}
 
 # Auction Start date
-  Log To Console    date - '${start_date}'
   ${inp_start_date}=   repair_start_date   ${start_date}
-  Log To Console    date - ${inp_start_date}
   Input Text   xpath=//input[@id="prozorro_auction_auction_period_attributes_should_start_after"]    ${inp_start_date}
 
 # Budget data add
@@ -149,7 +141,6 @@ Login
 #  ${guarantee_string}   Convert To String     ${guarantee}
 ######################### Warning HARDCODE
   ${guarantee_string}   get_min_guarant     ${budget}
-  Log To Console    min guarant - ${guarantee_string}
 ######################### Warning HARDCODE
   Input Text    ${locator.guaranteeamount}    ${guarantee_string}
 
@@ -157,16 +148,13 @@ Login
 # === Loop Try to select items info ===
   ${item_number}=   substract             ${NUMBER_OF_ITEMS}    1
   ${item_number}=   Convert To Integer    ${item_number}
-  log to console    number of items - 1 = '${item_number}'
   : FOR   ${INDEX}  IN RANGE    0    ${NUMBER_OF_ITEMS}
   \   ${items}=         Get From Dictionary   ${ARGUMENTS[1].data}            items
   \   ${item[x]}=                              Get From List               ${items}                 ${INDEX}
   \   ${item_description}=                  Get From Dictionary         ${item[x]}     description
-  \   Log to Console    item-0-description '${INDEX}' - '${item_description}'
   \   ${item_quantity}=                     Get From Dictionary         ${item[x]}     quantity
   \   ${unit}=                              Get From Dictionary         ${item[x]}     unit
   \   ${unit_code}=                         Get From Dictionary         ${unit}        code
-  \   Log to console      unit code - ${unit_code}
   \   ${unit_name}=                         Get From Dictionary         ${unit}        name
   \   ${classification}=                    Get From Dictionary         ${item[x]}     classification
   \   ${classification_scheme}=             Get From Dictionary         ${classification}    scheme
@@ -217,7 +205,6 @@ Login
   Wait Until Page Contains Element     xpath=//div[@class="blue_block top_border"]   60
 
 # Get Ids
-###################### WARNING Need to be changed
   : FOR   ${INDEX}  IN RANGE    1   15
   \   Wait Until Page Contains Element     xpath=//div[@class="blue_block top_border"]
   \   ${id_values}=      Get Webelements     xpath=//div[@class="blue_block top_border"]/div/div
@@ -227,8 +214,6 @@ Login
   \   Sleep     30
   \   Reload Page
   [Return]  ${TENDER_UAID}
-#  Log To Console    tend id - ${TENDER_UAID_H}
-#  [Return]  ${TENDER_UAID_H}
 
 set_clacifier
   [Arguments]        ${nonzero_num}   ${classification_id}
@@ -243,11 +228,9 @@ set_clacifier
   [Documentation]
   ...      ${ARGUMENTS[0]} ==  username
   ...      ${ARGUMENTS[1]} ==  ${TENDER_UAID}
-  Log To Console   Who is it_0 - ${ARGUMENTS[0]}
-  Log To Console   Searching for UFOs - ${ARGUMENTS[1]}
   Switch browser   ${ARGUMENTS[0]}
-  Run Keyword If   '${ARGUMENTS[0]}' == 'tabua_Owner'   Go To  ${AUCTION_PAGE}
-  Run Keyword If   '${ARGUMENTS[0]}' != 'tabua_Owner'   Go To  ${HOME_PAGE}
+  Run Keyword If   '${ARGUMENTS[0]}' == 'tabua_Owner'   Go To  ${BROKERS['tabua'].auctionpage}
+  Run Keyword If   '${ARGUMENTS[0]}' != 'tabua_Owner'   Go To  ${BROKERS['tabua'].startpage}
 
   :FOR   ${INDEX_N}  IN RANGE    1    15
   \   Wait Until Page Contains Element     id=q  10
@@ -255,16 +238,13 @@ set_clacifier
   \   Click Element   xpath=//input[@class="button btn_search"]
   \   Sleep   3
   \   ${auc_on_page}= 	Run Keyword And return Status	Wait Until Element Is Visible	xpath=//a[@class="auction_title accordion-title"]	10s
-  \   Log To Console    lililiili - ${auc_on_page}
   \   Exit For Loop If    ${auc_on_page}
   \   Sleep   5
   \   Reload Page
 
   Sleep   3
   ${g_value}=   Get Element Attribute   xpath=//div[contains(@id, "auction_tabs_")]@id
-  Log To Console    auction_tabs_ - ${g_value}
   ${auc_url}=   get_auc_url   ${g_value}
-  Log To Console    lot url - ${auc_url}
   Go To  ${auc_url}
   Sleep  3
 
@@ -348,7 +328,6 @@ set_clacifier
 
 Отримати інформацію про procuringEntity.name
   ${return_value}=   Get Text  xpath=//div[@class="small-10 columns"][1]
-  Log To Console  ${return_value}
   [Return]  ${return_value}
 
 Отримати інформацію із classification.scheme
@@ -385,7 +364,6 @@ set_clacifier
 Переглянути текст із поля і показати на сторінці
   [Arguments]   ${field_name}
   ${return_value}=   Get Text  ${locator.view.${field_name}}
-  Log To Console  bbdfgdfsgdsg  ${return_value}
   Sleep  3
   [Return]  ${return_value}
 
@@ -510,7 +488,7 @@ set_clacifier
   ...     ${ARGUMENTS[0]} == username
   ...     ${ARGUMENTS[1]} == tender_uaid
   ...     ${ARGUMENTS[2]} == item_info
-  Log To Console    arg-0 - ${ARGUMENTS[1]}
+
 
 Видалити предмет закупівлі
   [Arguments]   @{ARGUMENTS}
@@ -518,11 +496,11 @@ set_clacifier
   ...     ${ARGUMENTS[0]} == username
   ...     ${ARGUMENTS[1]} == tender_uaid
   ...     ${ARGUMENTS[2]} == item_id
-  Log To Console    arg-0 - ${ARGUMENTS[0]}
+
 
 Отримати інформацію про eligibilityCriteria
 # “Incorrect requirement, see the decision of DGF from 21.01.2017
-  [Return]  ${EligibilityCriteria}
+  [Return]  ${BROKERS['tabua'].eligibilitycriteria}
 
 
 ######### Item info #########
@@ -546,9 +524,6 @@ set_clacifier
 
 Отримати інформацію із unit.name
   ${unit_name}=   Get Text      xpath=//div[contains(., '${item_id}')]//span[@class="unit ng-binding"]
-#  ${unit_name}=   Переглянути текст із поля і показати на сторінці   items[${ARGUMENTS[2]}].unit.name
-  Log To Console    unit name - ${unit_name}
-#  Run Keyword And Return If  '${unit_name}' == 'килограммы'   Convert To String   кілограм
   [Return]  ${unit_name}
 
 
@@ -582,10 +557,6 @@ set_clacifier
 Внести зміни в тендер
   [Arguments]  ${user_name}  ${tender_id}  ${field}  ${value}
 
-  Log To Console    user_name - ${user_name}
-  Log To Console    field - ${field}
-  Log To Console    value - ${value}
-  Log To Console    tender_id - ${tender_id}
   ${at_auc_page}= 	Run Keyword And return Status	Wait Until Element Is Visible	xpath=//a[text()[contains(.,'Змінити')]]	10s
 
   Run Keyword If	${at_auc_page}	Перейти на сторінку зміни параметрів аукціону   ${field}	${value}
@@ -618,7 +589,6 @@ set_clacifier
   ${add_doc_button}=   Get Webelements     xpath=//a[@class="button btn_white documents_add add_fields"]
   Click Element       ${add_doc_button[0]}
   Choose File       xpath=//input[@type="file"]        ${file_path}
-#  Remove File  ${file_path}
 
 
 Змінити value.amount
@@ -788,12 +758,10 @@ Check text in webelements
 
 
 Отримати інформацію із запитання
-  [Arguments]  ${username}  ${tender_uaid}  ${questions_id}  ${element}
-
+  [Arguments]  ${username}  ${tender_uaid}  ${questions_id}  ${field_name}
   ${titles} =    Get Webelements     xpath=//ul[@class="questions_list"]/li/div[@class="question_title"]
   ${descriptions} =    Get Webelements     xpath=//ul[@class="questions_list"]/li/div[@class="question_text"]
   ${size} =	Get Length	${titles}
-
   ${title} =	Set Variable	${EMPTY}
   ${descr} =    Set Variable	${EMPTY}
   : FOR    ${i}    IN RANGE    0    ${size}+1
@@ -801,6 +769,10 @@ Check text in webelements
   \    ${descr} =	Get Text   ${descriptions[${i}]}
   \    Exit For Loop If    '${questions_id}' in '${title}'
 
+  ${return_value}=      Run Keyword If   '${field_name}' == 'title'
+    ...     Set Variable    ${title}
+    ...     ELSE IF  '${field_name}' == 'answer'     Get Text   xpath=//div[@class='zk-question' and .//p[contains(text(), '${question_id}')]]//span[@class='qa_answer']
+    ...     ELSE    Get Text   xpath=//div[@class='zk-question' and .//p[contains(text(), '${question_id}')]]//div[contains(@class, 'qa_message_description')]
   [Return]     ${descr}
 
 
@@ -1004,8 +976,8 @@ Check text in webelements
   ${return_value}=  convert_tabua_string_to_common_string  ${return_value}
   [return]  ${return_value}
 
-
-
-
-
-
+Отримати посилання на аукціон для глядача
+  [Arguments]  @{ARGUMENTS}
+  ${pro_id}=  Get Text    xpath=//div[@class="small-6 columns auction_prozorro_id"]
+  ${url}=  Set Variable  https://auction-sandbox.ea.openprocurement.org/auctions/${pro_id}
+  [Return]   ${url}

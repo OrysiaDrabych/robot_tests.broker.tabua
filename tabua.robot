@@ -790,24 +790,17 @@ Check text in webelements
 Отримати інформацію із запитання
   [Arguments]  ${username}  ${tender_uaid}  ${questions_id}  ${element}
 
-  Log to Console   oi element - ${element}
-  Log to Console   oi questions_id - ${questions_id}
-  Log to Console   kjgkhjk - ${EMPTY}
-
   ${titles} =    Get Webelements     xpath=//ul[@class="questions_list"]/li/div[@class="question_title"]
   ${descriptions} =    Get Webelements     xpath=//ul[@class="questions_list"]/li/div[@class="question_text"]
   ${size} =	Get Length	${titles}
-  Log to Console   oi lalalallalal - ${size}
+
   ${title} =	Set Variable	${EMPTY}
   ${descr} =    Set Variable	${EMPTY}
   : FOR    ${i}    IN RANGE    0    ${size}+1
   \    ${title} =	Get Text   ${titles[${i}]}
   \    ${descr} =	Get Text   ${descriptions[${i}]}
-  \    Log to Console   title lalalallalal - ${title}
-  \    Log to Console   descr lalalallalal - ${descr}
   \    Exit For Loop If    '${questions_id}' in '${title}'
-#  \    Run Keyword If	'${questions_id}' in '${result}'	Return From Keyword	${descr}
-  Log to Console   descr lalalallalal - ${descr}
+
   [Return]     ${descr}
 
 
@@ -891,8 +884,6 @@ Check text in webelements
   ...      ${ARGUMENTS[0]} == username
   ...      ${ARGUMENTS[1]} == tender_uaid
   ...      ${ARGUMENTS[2]} == ${test_bid_data}
-  Log To Console   opaopa - ${ARGUMENTS[2].data.value}
-  Log To Console   opaopa - ${ARGUMENTS[2].data.qualified}
   ${amount}=    Get From Dictionary     ${ARGUMENTS[2].data.value}    amount
 
   Click Element     xpath=//div[@class="auction_buttons"]/span[@class="button your_organization_need_verified to_modal"]
@@ -916,7 +907,6 @@ Check text in webelements
   :FOR   ${INDEX_N}  IN RANGE    1    2
   \   ${button_change}= 	Run Keyword And return Status	Wait Until Element Is Visible	xpath=//span[@class="button to_modal"]	10s
   \   Exit For Loop If    ${button_change}
-  \   Log To Console    aaaaaaaaaaaaaa
   \   Sleep   5
   \   Reload Page
 
@@ -976,10 +966,8 @@ Check text in webelements
   Sleep  5
   Wait Until Page Contains Element    xpath=//div[@class="document_link"]/a[contains(text(), '${doc_id}')]     20
   ${file_name}=   Get Text   xpath=//div[@class="document_link"]/a[contains(text(), '${doc_id}')]
-  Log To Console    file name - ${file_name}
   Sleep  5
   ${url}=   Get Element Attribute   xpath=//a[contains(text(), '${doc_id}')]@href
-  Log To Console   URL - ${url}
   download_file   ${url}  ${file_name}  ${OUTPUT_DIR}
   [Return]  ${file_name}
 

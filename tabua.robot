@@ -70,7 +70,7 @@ Login
   [Arguments]  ${user_name}  ${tender_id}
   Switch Browser	${user_name}
   Reload Page
-  Sleep	3s
+  Sleep    3s
 
 Підготувати дані для оголошення тендера
   [Arguments]  ${username}  ${tender_data}  ${role_name}
@@ -124,10 +124,7 @@ Login
   Click Element    xpath=//label[@for="prozorro_auction_value_attributes_vat_included"]
   ${step_rate_string}   Convert To String     ${step_rate}
   Input Text   ${locator.minimalStep.amount}  ${step_rate_string}
-#  ${guarantee_string}   Convert To String     ${guarantee}
-######################### Warning HARDCODE
-  ${guarantee_string}   get_min_guarant     ${budget}
-######################### Warning HARDCODE
+  ${guarantee_string}   Convert To String     ${guarantee}
   Input Text    ${locator.guaranteeamount}    ${guarantee_string}
 #  Items block info
 # === Loop Try to select items info ===
@@ -156,16 +153,14 @@ Login
   \   Input Text    ${item_descr_field[-1]}     ${item_description}
   \   ${item_quantity_field}=   Get Webelements     xpath=//input[contains(@id, 'prozorro_auction_items_attributes') and contains(@id, '_quantity')]
   \   Input Text    ${item_quantity_field[-1]}           ${item_quantity}
-  \   ${spec_unit_name}=   get_select_unit_name   ${unit_name}
   \   ${unit_name_field}=   Get Webelements     xpath=//select[contains(@id, 'prozorro_auction_items_attributes_') and contains(@id, '_unit_code')]
-  \   Select From List By Value   ${unit_name_field[-1]}    ${spec_unit_name}
+  \   Select From List By Value   ${unit_name_field[-1]}    ${unit_code}
 # Selecting classifier
   \   ${classifier_field}=      Get Webelements     xpath=//span[@class="btn btn_editing"]
   \   Click Element     ${classifier_field[-1]}
   \   Sleep     2
   \   Input Text        id=search_classification    ${classification_id}
-  \   ${nonzero_num}=   get_nonzero_num   ${classification_id}
-  \   set_clacifier   ${nonzero_num}   ${classification_id}
+  \   set_clacifier   ${classification_id}
   \   Click Element     xpath=//span[@class='button btn_adding']
   \   Sleep     2
 # Add delivery address
@@ -188,7 +183,6 @@ Login
   Wait Until Page Contains Element     xpath=//div[@class="blue_block top_border"]   60
 
 # Get Ids
-###################### WARNING Need to be changed
   : FOR   ${INDEX}  IN RANGE    1   15
   \   Wait Until Page Contains Element     xpath=//div[@class="blue_block top_border"]
   \   ${id_values}=      Get Webelements     xpath=//div[@class="blue_block top_border"]/div/div
@@ -200,9 +194,11 @@ Login
   [Return]  ${TENDER_UAID}
 
 set_clacifier
-  [Arguments]        ${nonzero_num}   ${classification_id}
-  :FOR   ${INDEX_N}  IN RANGE    2    ${nonzero_num}
+  [Arguments]       ${classification_id}
+  ${nonzero_num}  ${start_num}=   get_nonzero_num   ${classification_id}
+  :FOR   ${INDEX_N}  IN RANGE    ${start_num}    ${nonzero_num}
   \   ${first_code_symbols}=   get_first_symbols   ${classification_id}   ${INDEX_N}
+  \   Sleep    3
   \   Click Element     xpath=//label[starts-with(@for, '${first_code_symbols}')]
   \   Sleep     2
 
@@ -216,10 +212,10 @@ set_clacifier
   Run Keyword If   '${ARGUMENTS[0]}' != 'tabua_Owner'   Go To  ${BROKERS['tabua'].startpage}
   :FOR   ${INDEX_N}  IN RANGE    1    15
   \   Wait Until Page Contains Element     id=q  10
-  \   Input Text        id=q  ${ARGUMENTS[1]}
+  \   Input Text        id=q   ${ARGUMENTS[1]}
   \   Click Element   xpath=//input[@class="button btn_search"]
   \   Sleep   3
-  \   ${auc_on_page}= 	Run Keyword And return Status	Wait Until Element Is Visible	xpath=//a[@class="auction_title accordion-title"]	10s
+  \   ${auc_on_page}=    Run Keyword And return Status    Wait Until Element Is Visible    xpath=//a[@class="auction_title accordion-title"]    10s
   \   Exit For Loop If    ${auc_on_page}
   \   Sleep   5
   \   Reload Page
@@ -237,6 +233,9 @@ set_clacifier
   ...      ${ARGUMENTS[0]} ==  username
   ...      ${ARGUMENTS[1]} ==  tender_uaid
   ...      ${ARGUMENTS[2]} ==  field_name
+#  Sleep   5
+#  Reload Page
+#  Sleep   2
   Run Keyword And Return  Отримати інформацію про ${ARGUMENTS[2]}
 
 Отримати тест із поля і показати на сторінці
@@ -265,11 +264,10 @@ set_clacifier
 
 Отримати інформацію про minimalStep.amount
   Click Element   xpath=//a[contains(@id,'auction_tab_detail_')]
-  Sleep  10
+  Sleep  3
   ${return_value}=   Отримати текст із поля і показати на сторінці   minimalStep.amount
   ${return_value}=    Convert To Number   ${return_value.replace(' ', '').replace(',', '.')}
   Click Element   xpath=//a[contains(@id,'main_tab_detail_')]
-  Sleep  5
   [Return]   ${return_value}
 
 Отримати кількість предметів в тендері
@@ -281,6 +279,20 @@ set_clacifier
   Wait Until Page Contains Element    xpath=//li[@class="row item bottom_border"]     20
   ${res}=   Get Text      xpath=//li[@class="row item bottom_border"]
   [return]  ${res}
+
+Отримати інформацію про awards[0].status
+  Reload Page
+  Sleep     2
+  ${award_status} =    Get Text    xpath=//ul[@class="accordion bids_list"]/li/a/div[@class="row"]/div[contains(@class, "bid_status")][0]
+  ${correct_status}=    convert_nt_string_to_common_string      ${award_status}
+  [Return]    ${correct_status}
+
+Отримати інформацію про awards[1].status
+  Reload Page
+  Sleep     2
+  ${award_status} =    Get Text    xpath=//ul[@class="accordion bids_list"]/li/a/div[@class="row"]/div[contains(@class, "bid_status")][1]
+  ${correct_status}=    convert_nt_string_to_common_string      ${award_status}
+  [Return]    ${correct_status}
 
 
 ####  Client  #################
@@ -404,24 +416,21 @@ set_clacifier
 
 Отримати інформацію про items[0].unit.code
   ${units}=     Get Webelements     xpath=//div[@class="small-1 small-offset-1 columns"]
-  ${unit_name}=     Get Text    ${units[0]}
-  ${unit_name}=  get_select_unit_name  ${unit_name.split(' ')[-1]}
-  ${unit_name}=  get_select_unit_name  ${unit_name}
-  [Return]  ${unit_name}
+  ${unit_code}=     Get Text    ${units[0]}
+  ${unit_code}=  get_select_unit_code  ${unit_code.split(' ')[-1].strip()}
+  [Return]  ${unit_code}
 
 Отримати інформацію про items[1].unit.code
   ${units}=     Get Webelements     xpath=//div[@class="small-1 small-offset-1 columns"]
-  ${unit_name}=     Get Text    ${units[1]}
-  ${unit_name}=  get_select_unit_name  ${unit_name.split(' ')[-1]}
-  ${unit_name}=  get_select_unit_name  ${unit_name}
-  [Return]  ${unit_name}
+  ${unit_code}=     Get Text    ${units[1]}
+  ${unit_code}=  get_select_unit_code  ${unit_code.split(' ')[-1].strip()}
+  [Return]  ${unit_code}
 
 Отримати інформацію про items[2].unit.code
   ${units}=     Get Webelements     xpath=//div[@class="small-1 small-offset-1 columns"]
-  ${unit_name}=     Get Text    ${units[2]}
-  ${unit_name}=  get_select_unit_name  ${unit_name.split(' ')[-1]}
-  ${unit_name}=  get_select_unit_name  ${unit_name}
-  [Return]  ${unit_name}
+  ${unit_code}=     Get Text    ${units[2]}
+  ${unit_code}=  get_select_unit_code  ${unit_code.split(' ')[-1].strip()}
+  [Return]  ${unit_code}
 
 Отримати інформацію із quantity
   [Arguments]   @{arguments}
@@ -460,6 +469,7 @@ set_clacifier
   ...     ${ARGUMENTS[0]} == username
   ...     ${ARGUMENTS[1]} == tender_uaid
   ...     ${ARGUMENTS[2]} == item_info
+  Log To Console    user - ${ARGUMENTS[1]}
 
 Видалити предмет закупівлі
   [Arguments]   @{ARGUMENTS}
@@ -467,6 +477,7 @@ set_clacifier
   ...     ${ARGUMENTS[0]} == username
   ...     ${ARGUMENTS[1]} == tender_uaid
   ...     ${ARGUMENTS[2]} == item_id
+  Log To Console    user - ${ARGUMENTS[0]}
 
 Отримати інформацію про eligibilityCriteria
 # “Incorrect requirement, see the decision of DGF from 21.01.2017
@@ -524,21 +535,21 @@ set_clacifier
 Внести зміни в тендер
   [Arguments]  ${user_name}  ${tender_id}  ${field}  ${value}
   tabua.Пошук тендера по ідентифікатору  ${user_name}  ${tender_id}
-  ${at_auc_page}= 	Run Keyword And return Status	Wait Until Element Is Visible	xpath=//a[text()[contains(.,'Змінити')]]	10s
+  ${at_auc_page}=    Run Keyword And return Status    Wait Until Element Is Visible    xpath=//a[text()[contains(.,'Змінити')]]    10s
   Run Keyword If	${at_auc_page}	Перейти на сторінку зміни параметрів аукціону   ${field}	${value}
   Run Keyword If	${at_auc_page}!=True	Перевірити доступність зміни і змінити лот    ${field}	${value}
 
 
 Перейти на сторінку зміни параметрів аукціону
-  [Arguments]  ${field}	${value}
+  [Arguments]  ${field}    ${value}
   Click Element   xpath=//a[text()[contains(.,'Змінити')]]
-  Wait Until Element Is Visible	xpath=//div[text()[contains(.,'Редагування аукціону')]]    10
+  Wait Until Element Is Visible    xpath=//div[text()[contains(.,'Редагування аукціону')]]    10
   Перевірити доступність зміни і змінити лот    ${field}	${value}
 
 Перевірити доступність зміни і змінити лот
   [Arguments]  ${field}	 ${value}
-  ${avail_change}=    Run Keyword And return Status	Wait Until Element Is Visible	${locator.title}	10s
-  Run Keyword If	${avail_change}!=True	Додати документ
+  ${avail_change}=    Run Keyword And return Status    Wait Until Element Is Visible	${locator.title}	10s
+  Run Keyword If    ${avail_change}!=True    Додати документ
   Sleep  5
   Run Keyword	Змінити ${field}	${value}
   Click Element     xpath=//input[@name="commit"]
@@ -550,15 +561,16 @@ set_clacifier
   ${file_path}  ${file_name}  ${file_content}=  create_fake_doc
   ${add_doc_button}=   Get Webelements     xpath=//a[@class="button btn_white documents_add add_fields"]
   Click Element       ${add_doc_button[0]}
+  Sleep   1
   Choose File       xpath=//input[@type="file"]        ${file_path}
 
 Змінити value.amount
-	[Arguments]  ${value}
-	Input text	${locator.value.amount}	'${value}'
+    [Arguments]  ${value}
+    Input text	${locator.value.amount}	'${value}'
 
 Змінити minimalStep.amount
-	[Arguments]  ${value}
-	Input text	${locator.minimalStep.amount}	'${value}'
+    [Arguments]  ${value}
+    Input text	${locator.minimalStep.amount}	'${value}'
 
 Змінити title
   [Arguments]  ${value}
@@ -583,20 +595,20 @@ set_clacifier
   Input text	css=input[tid='eligibilityCriteria']	${value}
 
 Змінити guarantee
-	[Arguments]  ${value}
-	Input text	${locator.guaranteeamount}	${value}
+    [Arguments]  ${value}
+    Input text	${locator.guaranteeamount}	${value}
 
 Змінити dgfDecisionDate
-	[Arguments]  ${value}
-	Input Text   xpath=//input[@id="prozorro_auction_dgf_decision_date"]  ${value}
+    [Arguments]  ${value}
+    Input Text   xpath=//input[@id="prozorro_auction_dgf_decision_date"]  ${value}
 
 Змінити dgfID
-	[Arguments]  ${value}
-	Input Text   ${locator.dgfid}    ${value}
+    [Arguments]  ${value}
+    Input Text   ${locator.dgfid}    ${value}
 
 Змінити dgfDecisionID
-	[Arguments]  ${value}
-	Input Text   xpath=//input[@id="prozorro_auction_dgf_decision_id"]    ${value}
+    [Arguments]  ${value}
+    Input Text   xpath=//input[@id="prozorro_auction_dgf_decision_id"]    ${value}
 
 Змінити tenderAttempts
   [Arguments]  ${value}
@@ -605,9 +617,9 @@ set_clacifier
 
 Завантажити ілюстрацію
   [Arguments]  ${user_name}  ${tender_id}  ${filepath}
-  ${at_auc_page}= 	Run Keyword And return Status	Wait Until Element Is Visible	xpath=//a[text()[contains(.,'Змінити')]]	10s
+  ${at_auc_page}=    Run Keyword And return Status    Wait Until Element Is Visible	xpath=//a[text()[contains(.,'Змінити')]]	10s
   Run Keyword If	${at_auc_page}	Click Element   xpath=//a[text()[contains(.,'Змінити')]]
-  Wait Until Element Is Visible	xpath=//div[text()[contains(.,'Редагування аукціону')]]    10
+  Wait Until Element Is Visible	    xpath=//div[text()[contains(.,'Редагування аукціону')]]    10
   ${add_doc_button}=   Get Webelements     xpath=//a[@class="button btn_white documents_add add_fields"]
   Click Element       ${add_doc_button[-1]}
   Choose File       xpath=//input[@type="file"]        ${file_path}
@@ -616,19 +628,29 @@ set_clacifier
 
 Завантажити документ в тендер з типом
   [Arguments]  ${username}  ${tender_uaid}  ${filepath}  ${doc_type}
-  ${at_auc_page}= 	Run Keyword And return Status	Wait Until Element Is Visible	xpath=//a[text()[contains(.,'Змінити')]]	10s
+  ${at_auc_page}=    Run Keyword And return Status    Wait Until Element Is Visible	xpath=//a[text()[contains(.,'Змінити')]]	10s
   Run Keyword If	${at_auc_page}	Click Element   xpath=//a[text()[contains(.,'Змінити')]]
-  Wait Until Element Is Visible	xpath=//div[text()[contains(.,'Редагування аукціону')]]    10
+  Wait Until Element Is Visible  	xpath=//div[text()[contains(.,'Редагування аукціону')]]    10
   ${add_doc_button}=   Get Webelements     xpath=//a[@class="button btn_white documents_add add_fields"]
   Click Element       ${add_doc_button[-2]}
   Choose File       xpath=//input[@type="file"]        ${file_path}
   Click Element     xpath=//input[@name="commit"]
   Sleep  5
 
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Завантажити документ
+  [Arguments]  ${user_name}  ${filepath}  ${tender_id}=${None}
+  ${at_auc_page}=    Run Keyword And return Status    Wait Until Element Is Visible	xpath=//a[text()[contains(.,'Змінити')]]	10s
+  Run Keyword If	${at_auc_page}	Click Element   xpath=//a[text()[contains(.,'Змінити')]]
+  Wait Until Element Is Visible	    xpath=//div[text()[contains(.,'Редагування аукціону')]]    10
+  ${add_doc_button}=   Get Webelements     xpath=//a[@class="button btn_white documents_add add_fields"]
+  Click Element       ${add_doc_button[0]}
+  Choose File       xpath=//input[@type="file"]        ${filepath}
+  Click Element     xpath=//input[@name="commit"]
+  Sleep  5
+
 Додати Virtual Data Room
   [Arguments]  ${username}  ${tender_uaid}  ${vdr_url}  ${title}=Sample Virtual Data Room
-  ${at_auc_page}= 	Run Keyword And return Status	Wait Until Element Is Visible	xpath=//a[text()[contains(.,'Змінити')]]	10s
+  ${at_auc_page}=   Run Keyword And return Status    Wait Until Element Is Visible	 xpath=//a[text()[contains(.,'Змінити')]]	10s
   Run Keyword If	${at_auc_page}	Click Element   xpath=//a[text()[contains(.,'Змінити')]]
   Wait Until Page Contains Element      xpath=//textarea[contains(@id, 'prozorro_auction_documents_attributes_')]    10
   Input Text         xpath=//textarea[contains(@id, 'prozorro_auction_documents_attributes_')]          ${vdr_url}
@@ -638,7 +660,7 @@ set_clacifier
 
 Додати публічний паспорт активу
   [Arguments]  ${username}  ${tender_uaid}  ${certificate_url}  ${title}=Public Asset Certificate
-  ${at_auc_page}= 	Run Keyword And return Status	Wait Until Element Is Visible	xpath=//a[text()[contains(.,'Змінити')]]	10s
+  ${at_auc_page}=    Run Keyword And return Status    Wait Until Element Is Visible	xpath=//a[text()[contains(.,'Змінити')]]	10s
   Run Keyword If	${at_auc_page}	Click Element   xpath=//a[text()[contains(.,'Змінити')]]
   Wait Until Page Contains Element      xpath=//textarea[contains(@id, 'prozorro_auction_documents_attributes_')]    10
   Input Text         xpath=//textarea[contains(@id, 'prozorro_auction_documents_attributes_')]          ${certificate_url}
@@ -648,142 +670,172 @@ set_clacifier
 
 Додати офлайн документ
   [Arguments]  ${user_name}  ${tender_id}  ${accessDetails}
-  Wait Visibulity And Click Element	css=div[tid='btn.addUrl']
-  Wait Until Element Is Visible	xpath=(//select[@tid='docurl.type'])[last()]	10s
-  Select From List	xpath=(//select[@tid='docurl.type'])[last()]	string:x_dgfAssetFamiliarization
-  Wait Until Element Is Visible	xpath=(//input[@tid='docurl.title'])[last()]	10s
-  Input Text	xpath=(//input[@tid='docurl.title'])[last()]	${accessDetails}
-  Input Text	xpath=(//textarea[@tid='docurl.addfield'])[last()]	${accessDetails}
-
-#	Auction publication section
-  Wait Until Element Is Visible	css=button[tid='btn.createlot']
-  Wait For Ajax
-  Click Element	css=button[tid='btn.createlot']
-  Wait For Ajax
-  Wait Until Element Is Visible	css=button[tid='btn.cancellationLot']	${COMMONWAIT}
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  ${at_auc_page}=    Run Keyword And return Status    Wait Until Element Is Visible	xpath=//a[text()[contains(.,'Змінити')]]	10s
+  Run Keyword If	${at_auc_page}	Click Element   xpath=//a[text()[contains(.,'Змінити')]]
+  Wait Until Page Contains Element      xpath=//textarea[contains(@id, 'prozorro_auction_documents_attributes_')]    10
+  Input Text         xpath=//textarea[contains(@id, 'prozorro_auction_documents_attributes_')]          ${accessDetails}
+  Sleep  5
+  Click Element     xpath=//input[@name="commit"]
+  Sleep  5
 
 #################### Questions ######################
 
 Задати запитання на тендер
   [Arguments]  ${user_name}  ${tender_id}  ${question_data}
-  Wait Until Element Is Visible			xpath=//div[@class="columns blue_block questions"]//span[@class="button your_organization_need_verified to_modal"]	5
+  Wait Until Element Is Visible			xpath=//div[@class="columns blue_block questions"]//span[@class="button your_organization_need_verified to_modal"]	 5
   Click Element							xpath=//div[@class="columns blue_block questions"]//span[@class="button your_organization_need_verified to_modal"]
   Wait Until Element Is Visible			id=prozorro_question_title   5
   Input Text							id=prozorro_question_title	${question_data.data.title}
   Input Text							id=prozorro_question_description	${question_data.data.description}
   Click Element							xpath=//input[@name="commit"]
-  : FOR   ${INDEX}  IN RANGE    1   15
-  \   Sleep     10
-  \   Reload Page
-  \   ${text}=   Get Matching Xpath Count   xpath=//ul[@class="questions_list"]
-  \   Exit For Loop If  '${text}' > '0'
-  : FOR   ${INDEX}  IN RANGE    1   15
-  \   Log To Console   .   no_newline=true
-  \   Reload Page
-  \   ${titles} =    Get Webelements     xpath=//ul[@class="questions_list"]/li/div[@class="question_title"]
-  \   ${q_count}=    Get Length	${titles}
-  \   ${has_quest}=   Check text in webelements     ${question_data.data.title}  ${q_count}  ${titles}
-  \   Exit For Loop If  '${has_quest}' > '0'
-  \   Sleep     10
+  Check if question on page by id       ${question_data.data.title}
 
-Check text in webelements
-  [Arguments]  ${text}  ${q_count}  ${webelements}
-  :FOR  ${i}  IN RANGE  ${q_count}+1
-  \   ${q_text}=  Get Text   ${webelements[${i}]}
-  \   ${has_quest}=    compare_two_strings   ${q_text}  ${text}
-  \   Exit For Loop If   ${has_quest}
-  [Return]     ${has_quest}
+Check if question on page by id
+  [Arguments]  ${q_id}
+   : FOR   ${INDEX}  IN RANGE    1   15
+  \   Log To Console   .   no_newline=true
+  \   ${text}=   Get Matching Xpath Count   xpath=//ul[@class="questions_list"]//div[@class="question_title" and contains(text(),"${q_id}")]
+  \   Exit For Loop If  '${text}' > '0'
+  \   Sleep     10
+  \   Reload Page
 
 Задати запитання на предмет
   [Arguments]  ${username}  ${tender_uaid}  ${item_id}  ${question_data}
   tabua.Пошук тендера по ідентифікатору  ${username}  ${tender_uaid}
-  Wait Until Element Is Visible			xpath=//div[@class="columns blue_block questions"]//span[@class="button your_organization_need_verified to_modal"]	5
+  Wait Until Element Is Visible			xpath=//div[@class="columns blue_block questions"]//span[@class="button your_organization_need_verified to_modal"]	 20
+  Sleep    2
   Click Element							xpath=//div[@class="columns blue_block questions"]//span[@class="button your_organization_need_verified to_modal"]
-  Wait Until Element Is Visible			id=prozorro_question_title   5
-  Input Text							id=prozorro_question_title	${question_data.data.title}
-  Input Text							id=prozorro_question_description	${question_data.data.description}
-  Input Text							xpath=//input[@class="select2-search__field"]	${item_id}
-  Sleep    10
+  Wait Until Element Is Visible			id=prozorro_question_title   20
+  Input Text							id=prozorro_question_title	                                    ${question_data.data.title}
+  Click Element							xpath=//span[@class="select2-selection__arrow"]
+  Sleep    2
+  Input Text							xpath=//input[@class="select2-search__field"]	                ${item_id}
+  Sleep    3
+  Click Element                         xpath=//li[contains(@id, "select2-prozorro_question_item_id-result-")]
+  Sleep    1
+  Input Text							id=prozorro_question_description	                ${question_data.data.description}
+  Sleep    2
   Click Element							xpath=//input[@name="commit"]
-
+  Check if question on page by id       ${question_data.data.title}
 
 Отримати інформацію із запитання
   [Arguments]  ${username}  ${tender_uaid}  ${questions_id}  ${field_name}
+  Check if question on page by id       ${questions_id}
   ${titles} =    Get Webelements     xpath=//ul[@class="questions_list"]/li/div[@class="question_title"]
   ${descriptions} =    Get Webelements     xpath=//ul[@class="questions_list"]/li/div[@class="question_text"]
-  ${size} =	Get Length	${titles}
+  ${size} =    Get Length	${titles}
   ${title} =	Set Variable	${EMPTY}
   ${descr} =    Set Variable	${EMPTY}
   : FOR    ${i}    IN RANGE    0    ${size}+1
-  \    ${title} =	Get Text   ${titles[${i}]}
-  \    ${descr} =	Get Text   ${descriptions[${i}]}
-  \    Exit For Loop If    '${questions_id}' in '${title}'
+  \    ${title} =    Get Text    ${titles[${i}]}
+  \    ${descr} =    Get Text    ${descriptions[${i}]}
+  \    Exit For Loop If    "${questions_id}" in "${title}"
   ${return_value}=      Run Keyword If   '${field_name}' == 'title'
     ...     Set Variable    ${title}
     ...     ELSE IF  '${field_name}' == 'answer'     Get Text   xpath=//div[@class='zk-question' and .//p[contains(text(), '${question_id}')]]//span[@class='qa_answer']
     ...     ELSE    Get Text   xpath=//div[@class='zk-question' and .//p[contains(text(), '${question_id}')]]//div[contains(@class, 'qa_message_description')]
-  [Return]     ${descr}
+  [Return]     ${return_value}
+
+Check if question on page by num
+  [Arguments]  ${num}
+  : FOR   ${INDEX}  IN RANGE    1   15
+  \   ${question_list}=    Get Webelements    xpath=//ul[@class="questions_list"]/li/div[@class="question_title"]
+  \   ${q_lenght}=    Get Length	${question_list}
+  \   Sleep     10
+  \   Exit For Loop If  '${q_lenght}' > '${num}'
+  \   Reload Page
+  \   Sleep     10
 
 Отримати інформацію про questions[0].title
+  Check if question on page by num    0
   ${q_title_els}=    Get Webelements     xpath=//ul[@class="questions_list"]/li/div[@class="question_title"]
   ${q_title}=   Get Text  ${q_title_els[0]}
   [Return]    ${q_title}
 
 Отримати інформацію про questions[1].title
+  Check if question on page by num    1
   ${q_title_els}=    Get Webelements     xpath=//ul[@class="questions_list"]/li/div[@class="question_title"]
   ${q_title}=   Get Text  ${q_title_els[1]}
   [Return]    ${q_title}
 
 Отримати інформацію про questions[2].title
+  Check if question on page by num    2
   ${q_title_els}=    Get Webelements     xpath=//ul[@class="questions_list"]/li/div[@class="question_title"]
   ${q_title}=   Get Text  ${q_title_els[2]}
   [Return]    ${q_title}
 
 Отримати інформацію про questions[3].title
+  Check if question on page by num    3
   ${q_title_els}=    Get Webelements     xpath=//ul[@class="questions_list"]/li/div[@class="question_title"]
   ${q_title}=   Get Text  ${q_title_els[3]}
   [Return]    ${q_title}
 
 Отримати інформацію про questions[0].description
+  Check if question on page by num    0
   ${q_descr_els}=    Get Webelements     xpath=//ul[@class="questions_list"]/li/div[@class="question_text"]
   ${q_descr}=   Get Text  ${q_descr_els[0]}
   [Return]    ${q_descr}
 
 Отримати інформацію про questions[1].description
+  Check if question on page by num    1
   ${q_descr_els}=    Get Webelements     xpath=//ul[@class="questions_list"]/li/div[@class="question_text"]
   ${q_descr}=   Get Text  ${q_descr_els[1]}
   [Return]    ${q_descr}
 
 Отримати інформацію про questions[2].description
+  Check if question on page by num    2
   ${q_descr_els}=    Get Webelements     xpath=//ul[@class="questions_list"]/li/div[@class="question_text"]
   ${q_descr}=   Get Text  ${q_descr_els[2]}
   [Return]    ${q_descr}
 
 Отримати інформацію про questions[3].description
+  Check if question on page by num    3
   ${q_descr_els}=    Get Webelements     xpath=//ul[@class="questions_list"]/li/div[@class="question_text"]
   ${q_descr}=   Get Text  ${q_descr_els[3]}
   [Return]    ${q_descr}
 
 Отримати інформацію про questions[0].answer
+  Check if question on page by num    0
   ${q_answ_els}=    Get Webelements     xpath=//div[@class="question_answer"]/div
   ${q_answ}=   Get Text  ${q_answ_els[0]}
   [Return]  ${q_answ}
 
 Отримати інформацію про questions[1].answer
+  Check if question on page by num    1
   ${q_answ_els}=    Get Webelements     xpath=//div[@class="question_answer"]/div
   ${q_answ}=   Get Text  ${q_answ_els[1]}
   [Return]  ${q_answ}
 
 Отримати інформацію про questions[2].answer
+  Check if question on page by num    2
   ${q_answ_els}=    Get Webelements     xpath=//div[@class="question_answer"]/div
   ${q_answ}=   Get Text  ${q_answ_els[2]}
   [Return]  ${q_answ}
 
 Отримати інформацію про questions[3].answer
+  Check if question on page by num    3
   ${q_answ_els}=    Get Webelements     xpath=//div[@class="question_answer"]/div
   ${q_answ}=   Get Text  ${q_answ_els[3]}
   [Return]  ${q_answ}
+
+Відповісти на запитання
+  [Arguments]  ${user_name}  ${tender_id}  ${answer_data}  ${question_id}
+  Check if question on page by id       ${question_id}
+  ${titles} =           Get Webelements     xpath=//ul[@class="questions_list"]/li/div[@class="question_title"]
+  ${answer_buttons} =   Get Webelements     xpath=//span[text()[contains(.,'Дати відповідь')]]
+  ${t_size} =	Get Length	${titles}
+  ${answ_size} =	Get Matching Xpath Count	xpath=//ul[@class="questions_list"]/li/div[@class="question_answer"]/div
+  ${title} =	Set Variable	${EMPTY}
+  : FOR    ${i}    IN RANGE    0    ${t_size}+1
+  \    ${title} =	Get Text   ${titles[${i}]}
+  \    Exit For Loop If    "${question_id}" in "${title}"
+  ${index}=    Evaluate    ${i} - ${answ_size}
+  Click Button    ${answer_buttons[${index}]}
+  Wait Until Element Is Visible	   xpath=//textarea[@id='prozorro_question_answer']
+  Input Text	xpath=//textarea[@id='prozorro_question_answer']	${answer_data.data.answer}
+  Click Button	xpath=//input[@name="commit"]
+  Sleep     20
+  Reload Page
 
 #################### Bids #########################
 
@@ -794,6 +846,8 @@ Check text in webelements
   ...      ${ARGUMENTS[1]} == tender_uaid
   ...      ${ARGUMENTS[2]} == ${test_bid_data}
   ${amount}=    Get From Dictionary     ${ARGUMENTS[2].data.value}    amount
+  Wait Until Element Is Visible			xpath=//div[@class="auction_buttons"]/span[@class="button your_organization_need_verified to_modal"]	20
+  Sleep    2
   Click Element     xpath=//div[@class="auction_buttons"]/span[@class="button your_organization_need_verified to_modal"]
   ${amount_bid}=    Convert To Integer                 ${amount}
   Sleep     3
@@ -808,11 +862,11 @@ Check text in webelements
   Sleep     5
   Reload Page
   :FOR   ${INDEX_N}  IN RANGE    1    2
-  \   ${button_change}= 	Run Keyword And return Status	Wait Until Element Is Visible	xpath=//span[@class="button to_modal"]	10s
+  \   ${button_change}=    Run Keyword And return Status    Wait Until Element Is Visible  	xpath=//span[@class="button to_modal"]	  10s
   \   Exit For Loop If    ${button_change}
   \   Sleep   5
   \   Reload Page
-  Wait Until Element Is Visible	    xpath=//span[@class="button to_modal"]	10s
+  Wait Until Element Is Visible	      xpath=//span[@class="button to_modal"]	  10s
   ${result}=    Set Variable    'Вашу пропозицію було прийнято'
   [Return]     ${result}
 
@@ -827,7 +881,7 @@ Check text in webelements
 Завантажити документ в ставку
   [Arguments]  ${user_name}  ${tender_id}  ${financial_license_path}
   Click Element   xpath=//span[@class="button to_modal"]
-  Wait Until Element Is Visible	xpath=//a[@class="button btn_white documents_add add_fields"]	10s
+  Wait Until Element Is Visible  	xpath=//a[@class="button btn_white documents_add add_fields"]	10s
   Click Element   xpath=//a[@class="button btn_white documents_add add_fields"]
   Choose File       xpath=//input[@type="file"]        ${financial_license_path}
   Click Element     xpath=//input[@name="commit"]
@@ -838,7 +892,7 @@ Check text in webelements
   [Arguments]  ${user_name}  ${tender_id}  ${name}  ${amount_bid}
   ${amount_bid}=   Convert To String    ${amount_bid}
   Click Element   xpath=//span[@class="button to_modal"]
-  Wait Until Element Is Visible	xpath=//a[@class="button btn_white documents_add add_fields"]	10s
+  Wait Until Element Is Visible	  xpath=//a[@class="button btn_white documents_add add_fields"]	  10s
   Clear Element Text  xpath=//input[@id="prozorro_bid_value_attributes_amount"]
   Input Text          xpath=//input[@id="prozorro_bid_value_attributes_amount"]    ${amount_bid}
   Click Element       xpath=//input[@name="commit"]
@@ -893,13 +947,49 @@ Check text in webelements
   [Documentation]
   ...      ${ARGUMENTS[0]} ==  username
   ...      ${ARGUMENTS[1]} ==  tenderId
-  Switch Browser    ${ARGUMENTS[0]}
+  tabua.Пошук тендера по ідентифікатору    ${ARGUMENTS[0]}   ${ARGUMENTS[1]}
   ${return_value}=  Get Text  xpath=//div[@class='auction_title']/div/div[2]/span
   ${return_value}=  convert_tabua_string_to_common_string  ${return_value}
   [return]  ${return_value}
 
 Отримати посилання на аукціон для глядача
   [Arguments]  @{ARGUMENTS}
+  [Documentation]
+  ...      ${ARGUMENTS[0]} ==  username
+  ...      ${ARGUMENTS[1]} ==  tenderId
+  tabua.Пошук тендера по ідентифікатору    ${ARGUMENTS[0]}   ${ARGUMENTS[1]}
+  Sleep  3
+  Wait Until Page Contains Element    xpath=//div[@class="small-6 columns auction_prozorro_id"]     20
   ${pro_id}=  Get Text    xpath=//div[@class="small-6 columns auction_prozorro_id"]
   ${url}=  Set Variable  https://auction-sandbox.ea.openprocurement.org/auctions/${pro_id}
   [Return]   ${url}
+
+Отримати посилання на аукціон для учасника
+  [Arguments]  @{ARGUMENTS}
+  [Documentation]
+  ...      ${ARGUMENTS[0]} ==  username
+  ...      ${ARGUMENTS[1]} ==  tenderId
+  tabua.Пошук тендера по ідентифікатору    ${ARGUMENTS[0]}   ${ARGUMENTS[1]}
+  Sleep  30
+  Wait Until Page Contains Element    xpath=//div[@class="small-6 columns auction_prozorro_id"]     20
+  ${pro_id}=  Get Text    xpath=//div[@class="small-6 columns auction_prozorro_id"]
+  ${url}=  Set Variable  https://auction-sandbox.ea.openprocurement.org/auctions/${pro_id}
+  [Return]   ${url}
+
+Завантажити протокол аукціону в авард
+  [Arguments]   ${user_name}   ${tender_uaid}   ${auction_protocol_path}   ${award_index}
+  Sleep   120
+  Зайти в розділ кваліфікація
+  ${drop_id}=  Catenate   SEPARATOR=   ${CUEX_LOT_ID}   _pending.verification
+  ${action_id}=   Catenate   SEPARATOR=   ${CUEX_LOT_ID}   _uploadprotocol
+  Wait Until Keyword Succeeds   5 x   10 s   Run Keywords
+  ...   Reload Page
+  ...   AND   Клацнути по випадаючому списку  ${drop_id}
+  ...   AND   Element Should Be Visible   id=${action_id}
+  Виконати дію   ${action_id}
+  Wait Until Element Is Visible   id=fileInput1
+  Приєднати документ   id=fileInput1   ${auction_protocol_path}
+  Sleep    2
+  Click Element   xpath=//input[@type="submit"]
+  Wait Until Page Contains   Протокол успішно завантажений. Для переходу до іншого етапу - підтвердіть протокол   10
+  Перевірити та сховати повідомлення

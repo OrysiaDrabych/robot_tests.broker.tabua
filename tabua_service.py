@@ -3,51 +3,73 @@
 import urllib
 
 def update_test_data(role_name, tender_data):
+    name_dict = {
+        u'штуки': u'штука',
+        u'метри квадратні': u'метр кв.',
+        u'послуга': u'послуга'
+    }
     if role_name == 'tender_owner':
         tender_data['data']['procuringEntity']['name'] = u'ПАТ "Тест Банк"'
+    tender_data['data']['guarantee']['amount'] = tender_data['data']['value']['amount']* 0.011
+    for el in tender_data['data']['items']:
+        if el['unit']['name'] in name_dict:
+            el['unit']['name'] = name_dict[el['unit']['name']]
     return tender_data
 
 def substract(dividend, divisor):
     return int(dividend) - int(divisor)
 
-def convert_prom_string_to_common_string(string):
-    return {
-        u"грн.": u"UAH",
-        u"шт.": u"штуки",
-        u"кв.м.": u"метри квадратні",
-        u"метры квадратные": u"метри квадратні",
-        u" з ПДВ": True,
-        u"Класифікатор:": u"CAV",
-        u"Період уточнень": u"active.enquiries",
-        u"Прийом пропозицій": u"active.tendering",
-        u"Аукціон": u"active.auction",
-        u"Кваліфікація": u"active.qualification",
-        u"Скасована": u"cancelled",
-        u"Аукціон не відбувся": u"unsuccessful",
-        u"Аукцион не состоялся": u"unsuccessful",
-        u"Завершена": u"complete",
-        u"Подписанный": u"active",
-        u"Впервые": u"Лот виставляється вперше",
-        u"Повторно": u"Лот виставляється повторно",
-    }.get(string, string)
-
-def get_select_unit_name(standard_unit_name):
+def get_select_unit_code(raw_code):
     unit_name_dictionary = {
-        u'послуга': 'E48',
-        u'ящик': 'BX',
-        u'блок': 'D64',
-        u'Гігакалорія': 'GRM',
-        # u'роботи': '',
+        u'кг': 'KGM',
+        u'бл': 'D64',
+        u'уп': 'PK',
+        u'га': 'HAR',
+        u'м²': 'MTK',
+        u'м': 'MTR',
+        u'наб': 'SET',
+        u'км': 'KMT',
+        u'м³': 'MTQ',
+        u"фл": "VI",
+        u'ящ': 'BX',
+        u'шт': 'H87',
+        u'т': 'TNE',
         u'рейс': 'E54',
-        u'штуки': 'H87',
-        u'гектар': 'HAR',
-        u'кілограми': 'KGM',
-        u'кілометри': 'KMT',
-        u"грн": u"UAH",
-        u"посл": u"послуга"
-        # u'комплект': '',
+        u'од': 'E50',
+        u'бобіна': '4A',
+        u'МВт-год/год': 'E07',
+        u'посл': u'E48',
+        u'г': 'GRM',
+        u"год": "HUR",
+        u'роб.день': 'E49',
+        u'пач': 'RM',
+        u"люд/год": "RH",
+        u'E48': u'E48',
+        u'H87': u'H87',
     }
-    return unit_name_dictionary[standard_unit_name]
+    return unit_name_dictionary[raw_code]
+
+def get_select_unit_name(raw_name):
+    unit_name_dictionary = {
+        u'м²': u'метри квадратні',
+        u'м³': u'метри куб.',
+        u'м': u'метри',
+        u"посл": u"послуга",
+        u'шт': u'штуки',
+        u'кг': u'кілограми',
+        u'км': u'кілометри',
+        u'рейс': u'рейси',
+        u'га': u'гектар',
+        u"грн": u"UAH",
+        u"посл": u"послуга",
+        u'год': u'години',
+        u'г': u'грами',
+        u'бл': u'блок',
+        u'т': u'тони',
+        u'ящ': 'ящик',
+        u'уп': 'упаковка'
+    }
+    return unit_name_dictionary[raw_name]
 
 def convert_desc(desc1, desc2):
     desc = desc1.replace(desc2, '').strip()
@@ -57,7 +79,11 @@ def get_nonzero_num(code_str):
     code_str = code_str.split('-')[0]
     while code_str[-1] == '0':
         code_str = code_str[:-1]
-    return len(code_str) + 1
+    if code_str[0] == '0':
+        start_num = 2
+    else:
+        start_num = 1
+    return len(code_str) + 1, start_num
 
 def repair_start_date(date_s):
     d_list = str(date_s).split('-')
@@ -103,11 +129,6 @@ def get_next_description(desc1, desc2, desc3):
 def convert_nt_string_to_common_string(proc_method):
     return proc_method.split(':')[-1].strip()
 
-################ WARNING - hardcode
-def get_min_guarant(start_price):
-    return str(start_price * 0.011)
-################ WARNING - hardcode
-
 def convert_string_to_integer(_str):
     return {
         u"Вперше.": 1,
@@ -138,7 +159,7 @@ def convert_tabua_string_to_common_string(string):
         u'document_type_x_presentation': u'x_presentation',
         u'document_type_technicalspecifications': u'technicalspecifications',
         u"document_type_": u"None",
-        u"Очікування пропозицій": u"active.auction",
+        u"Очікування пропозицій": u"active.tendering",
         u"Період аукціону": u"active.auction",
         u"Пропозиції розглянуто": u"active.awarded",
         u"Кваліфікація": u"active.qualification",

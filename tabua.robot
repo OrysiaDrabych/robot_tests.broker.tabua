@@ -2,7 +2,6 @@
 Library  String
 Library  Selenium2Library
 Library  tabua_service.py
-Library  DebugLibrary
 Library  Collections
 Library  BuiltIn
 
@@ -130,6 +129,7 @@ Login
 # === Loop Try to select items info ===
   ${item_number}=   substract             ${NUMBER_OF_ITEMS}    1
   ${item_number}=   Convert To Integer    ${item_number}
+  log to console    number of items - 1 = '${item_number}'
   : FOR   ${INDEX}  IN RANGE    0    ${NUMBER_OF_ITEMS}
   \   ${items}=         Get From Dictionary   ${ARGUMENTS[1].data}            items
   \   ${item[x]}=                              Get From List               ${items}                 ${INDEX}
@@ -179,9 +179,8 @@ Login
   \   Sleep     3
 # Save Auction - publish to CDB
   Click Element                      ${locator.publish}
-
+  Sleep    5
   Wait Until Page Contains Element     xpath=//div[@class="blue_block top_border"]   60
-
 # Get Ids
   : FOR   ${INDEX}  IN RANGE    1   15
   \   Wait Until Page Contains Element     xpath=//div[@class="blue_block top_border"]
@@ -207,6 +206,7 @@ set_clacifier
   [Documentation]
   ...      ${ARGUMENTS[0]} ==  username
   ...      ${ARGUMENTS[1]} ==  ${TENDER_UAID}
+  Log To Console   Who is it_0 - ${ARGUMENTS[0]}
   Switch browser   ${ARGUMENTS[0]}
   Run Keyword If   '${ARGUMENTS[0]}' == 'tabua_Owner'   Go To  ${BROKERS['tabua'].auctionpage}
   Run Keyword If   '${ARGUMENTS[0]}' != 'tabua_Owner'   Go To  ${BROKERS['tabua'].startpage}
@@ -223,8 +223,7 @@ set_clacifier
   ${g_value}=   Get Element Attribute   xpath=//div[contains(@id, "auction_tabs_")]@id
   ${auc_url}=   get_auc_url   ${g_value}
   Go To  ${auc_url}
-  Sleep  3
-
+  Sleep  10
 
 ############# Tender info #########
 Отримати інформацію із тендера
@@ -233,9 +232,7 @@ set_clacifier
   ...      ${ARGUMENTS[0]} ==  username
   ...      ${ARGUMENTS[1]} ==  tender_uaid
   ...      ${ARGUMENTS[2]} ==  field_name
-#  Sleep   5
-#  Reload Page
-#  Sleep   2
+  Log To Console   otrumaty info pro - field_name
   Run Keyword And Return  Отримати інформацію про ${ARGUMENTS[2]}
 
 Отримати тест із поля і показати на сторінці
@@ -469,7 +466,6 @@ set_clacifier
   ...     ${ARGUMENTS[0]} == username
   ...     ${ARGUMENTS[1]} == tender_uaid
   ...     ${ARGUMENTS[2]} == item_info
-  Log To Console    user - ${ARGUMENTS[1]}
 
 Видалити предмет закупівлі
   [Arguments]   @{ARGUMENTS}
@@ -477,7 +473,6 @@ set_clacifier
   ...     ${ARGUMENTS[0]} == username
   ...     ${ARGUMENTS[1]} == tender_uaid
   ...     ${ARGUMENTS[2]} == item_id
-  Log To Console    user - ${ARGUMENTS[0]}
 
 Отримати інформацію про eligibilityCriteria
 # “Incorrect requirement, see the decision of DGF from 21.01.2017
@@ -693,7 +688,6 @@ set_clacifier
 Check if question on page by id
   [Arguments]  ${q_id}
    : FOR   ${INDEX}  IN RANGE    1   15
-  \   Log To Console   .   no_newline=true
   \   ${text}=   Get Matching Xpath Count   xpath=//ul[@class="questions_list"]//div[@class="question_title" and contains(text(),"${q_id}")]
   \   Exit For Loop If  '${text}' > '0'
   \   Sleep     10
@@ -823,7 +817,7 @@ Check if question on page by num
   Check if question on page by id       ${question_id}
   ${titles} =           Get Webelements     xpath=//ul[@class="questions_list"]/li/div[@class="question_title"]
   ${answer_buttons} =   Get Webelements     xpath=//span[text()[contains(.,'Дати відповідь')]]
-  ${t_size} =	Get Length	${titles}
+  ${t_size} =    Get Length    ${titles}
   ${answ_size} =	Get Matching Xpath Count	xpath=//ul[@class="questions_list"]/li/div[@class="question_answer"]/div
   ${title} =	Set Variable	${EMPTY}
   : FOR    ${i}    IN RANGE    0    ${t_size}+1
@@ -886,7 +880,6 @@ Check if question on page by num
   Choose File       xpath=//input[@type="file"]        ${financial_license_path}
   Click Element     xpath=//input[@name="commit"]
   Sleep  3
-  tabua.Пошук тендера по ідентифікатору    ${user_name}  ${tender_id}
 
 Змінити цінову пропозицію
   [Arguments]  ${user_name}  ${tender_id}  ${name}  ${amount_bid}
@@ -897,8 +890,6 @@ Check if question on page by num
   Input Text          xpath=//input[@id="prozorro_bid_value_attributes_amount"]    ${amount_bid}
   Click Element       xpath=//input[@name="commit"]
   Sleep     3
-  Reload Page
-  tabua.Пошук тендера по ідентифікатору    ${user_name}  ${tender_id}
 
 Отримати інформацію із пропозиції
   [Arguments]  ${user_name}  ${tender_id}  ${field}
@@ -958,10 +949,10 @@ Check if question on page by num
   ...      ${ARGUMENTS[0]} ==  username
   ...      ${ARGUMENTS[1]} ==  tenderId
   tabua.Пошук тендера по ідентифікатору    ${ARGUMENTS[0]}   ${ARGUMENTS[1]}
-  Sleep  3
-  Wait Until Page Contains Element    xpath=//div[@class="small-6 columns auction_prozorro_id"]     20
-  ${pro_id}=  Get Text    xpath=//div[@class="small-6 columns auction_prozorro_id"]
-  ${url}=  Set Variable  https://auction-sandbox.ea.openprocurement.org/auctions/${pro_id}
+  Sleep  120
+  Reload Page
+  Wait Until Page Contains Element    xpath=//span[@class="auction_link"]/a     300
+  ${url}=  Get Element Attribute    xpath=//span[@class="auction_link"]/a@href
   [Return]   ${url}
 
 Отримати посилання на аукціон для учасника
@@ -969,27 +960,86 @@ Check if question on page by num
   [Documentation]
   ...      ${ARGUMENTS[0]} ==  username
   ...      ${ARGUMENTS[1]} ==  tenderId
-  tabua.Пошук тендера по ідентифікатору    ${ARGUMENTS[0]}   ${ARGUMENTS[1]}
-  Sleep  30
-  Wait Until Page Contains Element    xpath=//div[@class="small-6 columns auction_prozorro_id"]     20
-  ${pro_id}=  Get Text    xpath=//div[@class="small-6 columns auction_prozorro_id"]
-  ${url}=  Set Variable  https://auction-sandbox.ea.openprocurement.org/auctions/${pro_id}
+  Sleep  120
+  Reload Page
+  Wait Until Page Contains Element    xpath=//div[@class="bid_auction_link"]/a     300
+  ${url}=  Get Element Attribute    xpath=//div[@class="bid_auction_link"]/a@href
   [Return]   ${url}
 
 Завантажити протокол аукціону в авард
   [Arguments]   ${user_name}   ${tender_uaid}   ${auction_protocol_path}   ${award_index}
-  Sleep   120
-  Зайти в розділ кваліфікація
-  ${drop_id}=  Catenate   SEPARATOR=   ${CUEX_LOT_ID}   _pending.verification
-  ${action_id}=   Catenate   SEPARATOR=   ${CUEX_LOT_ID}   _uploadprotocol
-  Wait Until Keyword Succeeds   5 x   10 s   Run Keywords
-  ...   Reload Page
-  ...   AND   Клацнути по випадаючому списку  ${drop_id}
-  ...   AND   Element Should Be Visible   id=${action_id}
-  Виконати дію   ${action_id}
-  Wait Until Element Is Visible   id=fileInput1
-  Приєднати документ   id=fileInput1   ${auction_protocol_path}
-  Sleep    2
-  Click Element   xpath=//input[@type="submit"]
-  Wait Until Page Contains   Протокол успішно завантажений. Для переходу до іншого етапу - підтвердіть протокол   10
-  Перевірити та сховати повідомлення
+  Click Element    xpath=//div[contains (@class, "columns bid_status bid_status_award_pending_verification")]
+  Wait Until Element Is Visible    xpath=//span[@class="button to_modal"]    5
+  Click Element    xpath=//span[@class="button to_modal"]
+  Sleep  2
+  Click Element    xpath=//a[@class="button btn_white documents_add add_fields"]
+  Sleep  2
+  Choose File      xpath=//input[@type="file"]        ${auction_protocol_path}
+  Sleep  2
+  Click Element    xpath=//input[@name="commit"]
+  Sleep  5
+
+Підтвердити наявність протоколу аукціону
+  [Arguments]   @{ARGUMENTS}
+  [Documentation]
+  ...       ${ARGUMENTS[0]} == auction_uaid
+  ...       ${ARGUMENTS[1]} == index
+  ${response}=      Run Keyword If   'Неможливість змінити статус' in '${TEST NAME}'     '${False}'
+  ${response}=      Run Keyword If   'Можливість підтвердити наявність протоколу аукціону' in '${TEST NAME}'   Log To Console   ok
+  [Return]     ${response}
+
+Підтвердити постачальника
+  [Arguments]  ${username}  ${tender_uaid}  ${award_num}
+  ${winner_open}=    Run Keyword And return Status    Wait Until Element Is Visible    xpath=//span[@class="button to_modal"]    10s
+  Run Keyword If     '${winner_open}' != 'True'    Click Element    xpath=//div[contains (@class, "columns bid_status bid_status_award_pending_payment")]
+  Sleep     2
+  Click Element  xpath=//span[@class="button to_modal"]
+  Sleep     2
+  Run Keyword If    '${TEST NAME}' == 'Можливість підтвердити оплату першого кандидата'   Click Element  xpath=//input[@name="commit"]
+  Run Keyword If    '${TEST NAME}' == 'Можливість підтвердити оплату другого кандидата'   Click Element  xpath=//input[@name="commit"]
+
+Дискваліфікувати постачальника
+  [Arguments]  ${username}  ${tender_id}  ${award_num}  ${description}
+  ${opened}=    Run Keyword And return Status    Wait Until Element Is Visible    xpath=//span[@class="button to_modal"]    10s
+  Wait Until Page Contains Element      xpath=//div[contains (@class, "columns bid_status bid_status_contract_pending")]    300
+  Reload Page
+  Sleep    3
+  Run Keyword If     '${opened}' != 'True'    Click Element    xpath=//div[contains (@class, "columns bid_status bid_status_contract_pending")]
+  Sleep     2
+  Click Element     xpath=//span[@class="button warning to_modal"]
+  Sleep     2
+  Wait Until Page Contains Element      xpath=//input[@class="validate-required"]
+  Input Text    id=prozorro_award_title_ua           ${description}
+  Input Text    id=prozorro_award_description_ua     ${description}
+  Sleep     2
+  Click Element  xpath=//a[@class="button btn_white documents_add add_fields"]
+  ${file_path}  ${file_name}  ${file_content}=  create_fake_doc
+  Sleep     2
+  Choose File      xpath=//input[@type="file"]        ${file_path}
+  Sleep     2
+  Click Element  xpath=//input[@name="commit"]
+  Sleep     2
+
+Завантажити угоду до тендера
+  [Arguments]  @{ARGUMENTS}
+  [Documentation]
+  ...      ${ARGUMENTS[0]}  ==  user_name
+  ...      ${ARGUMENTS[1]}  ==  auction_uaid
+  ...      ${ARGUMENTS[2]}  ==  contract_num
+  ...      ${ARGUMENTS[3]}  ==  file_path
+  ${opened}=    Run Keyword And return Status    Wait Until Element Is Visible    xpath=//span[@class="button to_modal"]    30s
+  Wait Until Page Contains Element      xpath=//div[contains (@class, "columns bid_status bid_status_contract_pending")]    120
+  Run Keyword If     '${opened}' != 'True'    Click Element    xpath=//div[contains (@class, "columns bid_status bid_status_contract_pending")]
+  Sleep     2
+  Click Element     xpath=//span[@class="button to_modal"]
+  Sleep     2
+  Wait Until Page Contains Element      xpath=//div[@class="contract_confirm_document"]
+  Input Text    id=prozorro_contract_contract_number     ${ARGUMENTS[2]}
+  Input Text    id=prozorro_contract_date_signed     get_current_date
+  Sleep     2
+  Click Element    xpath=//a[@class="button btn_white documents_add add_fields"]
+  Sleep  2
+  Choose File      xpath=//input[@type="file"]        ${ARGUMENTS[3]}
+  Sleep  2
+  Click Element    xpath=//input[@name="commit"]
+  Sleep  3

@@ -176,7 +176,3 @@ def download_file(url, file_name, output_dir):
 def get_currt_date():
     i = datetime.datetime.now()
     return i.strftime('%d.%m.%y')
-
-def get_int_sleep(base_sleep, mult=1):
-    min_v = int(base_sleep * mult)
-    return min_v + ((base_sleep * mult - min_v) > 0)

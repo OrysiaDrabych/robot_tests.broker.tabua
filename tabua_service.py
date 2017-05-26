@@ -173,6 +173,6 @@ def convert_tabua_string_to_common_string(string):
 def download_file(url, file_name, output_dir):
     urllib.urlretrieve(url, ('{}/{}'.format(output_dir, file_name)))
 
-def get_current_date():
+def get_currt_date():
     i = datetime.datetime.now()
     return i.strftime('%d.%m.%y')

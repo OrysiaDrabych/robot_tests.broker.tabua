@@ -52,11 +52,11 @@ def get_select_unit_code(raw_code):
 
 def get_select_unit_name(raw_name):
     unit_name_dictionary = {
-        u'м²': u'метри квадратні',
+        u'м²': u'метр кв.',
         u'м³': u'метри куб.',
         u'м': u'метри',
-        u"посл": u"послуга",
-        u'шт': u'штуки',
+        u'посл': u"послуга",
+        u'шт': u'штука',
         u'кг': u'кілограми',
         u'км': u'кілометри',
         u'рейс': u'рейси',
@@ -67,8 +67,8 @@ def get_select_unit_name(raw_name):
         u'г': u'грами',
         u'бл': u'блок',
         u'т': u'тони',
-        u'ящ': 'ящик',
-        u'уп': 'упаковка'
+        u'ящ': u'ящик',
+        u'уп': u'упаковка'
     }
     return unit_name_dictionary[raw_name]
 
@@ -89,6 +89,10 @@ def get_nonzero_num(code_str):
 def repair_start_date(date_s):
     d_list = str(date_s).split('-')
     return '{0}.{1}.{2}'.format(d_list[2][:2], d_list[1], d_list[0])
+
+def repair_tenderperiod_enddate(date_e):
+    # return date_e.split('/')[0].strip()
+    return date_e.replace(' / ', ' ').strip() + ':00.000000+03:00'
 
 def get_first_symbols(code_str, num):
     return 'cav_' + code_str[:int(num)]
@@ -147,9 +151,8 @@ def convert_to_price(dol, cent):
 def convert_tabua_string_to_common_string(string):
     return {
         u"грн.": u"UAH",
-        u"шт.": u"штуки",
-        u"кв.м.": u"метри квадратні",
-        u"метры квадратные": u"метри квадратні",
+        u"шт.": u"штука",
+        u"кв.м.": u"метр кв.",
         u" з ПДВ": True,
         u"Класифікатор:": u"CAV",
         u'document_type_x_dgfplatformlegaldetails': u'x_dgfPlatformLegalDetails',
@@ -175,4 +178,4 @@ def download_file(url, file_name, output_dir):
 
 def get_currt_date():
     i = datetime.datetime.now()
-    return i.strftime('%d.%m.%y')
+    return i.strftime('%d.%m.%Y')

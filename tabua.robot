@@ -25,7 +25,7 @@ ${locator.add_item}                  xpath=//a[@class="button btn_white add_auct
 
 ${locator.publish}                     xpath=//input[@name="publish"]
 
-${locator.tenderPeriod.endDate}           xpath=//span[@class="entry_submission_end_detail"]
+${locator.tenderPeriod.endDate}           xpath=//span[@class="entry_submission_end_detail"]/span
 ${locator.view.minimalStep.amount}        xpath=//div[@class="blue_block"][2]//span[@class="amount"]
 
 ${locator.items[0].description}      css=div.small-7.columns.auction_description     # Description of Item (Lot in Auctions)
@@ -231,21 +231,31 @@ set_clacifier
   ...      ${ARGUMENTS[0]} ==  username
   ...      ${ARGUMENTS[1]} ==  tender_uaid
   ...      ${ARGUMENTS[2]} ==  field_name
+  tabua.Пошук тендера по ідентифікатору    ${ARGUMENTS[0]}    ${ARGUMENTS[1]}
+  Sleep   5
   Run Keyword And Return  Отримати інформацію про ${ARGUMENTS[2]}
 
 Отримати тест із поля і показати на сторінці
-    [Arguments]   ${field_name}
-    ${return_value}=   Get Text  ${locator.${field_name}}
-    [Return]  ${return_value}
+  [Arguments]   ${field_name}
+  ${return_value}=   Get Text  ${locator.${field_name}}
+  [Return]  ${return_value}
 
 Отримати текст із поля і показати на сторінці
-    [Arguments]   ${field_name}
-    ${return_value}=   Get Text  ${locator.view.${field_name}}
-    [Return]  ${return_value}
+  [Arguments]   ${field_name}
+  ${return_value}=   Get Text  ${locator.view.${field_name}}
+  [Return]  ${return_value}
 
 Отримати інформацію про tenderPeriod.endDate
-    ${return_value}=    Отримати тест із поля і показати на сторінці  tenderPeriod.endDate
-    [Return]    ${return_value}
+  ${return_value}=    Get Element Attribute    xpath=//span[@class="entry_submission_end_detail"]@data-tender-end
+  [Return]    ${return_value}
+
+Отримати інформацію про auctionPeriod.startDate
+  ${return_value}=    Get Element Attribute    xpath=//span[@class="eauction_date_detail"]@data-auction-start
+  [Return]    ${return_value}
+
+Отримати інформацію про tenderPeriod.startDate
+  ${return_value}=    Get Element Attribute    xpath=//span[@class="entry_submission_start_detail"]@data-tender-start
+  [Return]    ${return_value}
 
 Отримати інформацію про value.amount
   ${valueAmount}=   Отримати текст із поля і показати на сторінці   value.amount
@@ -355,6 +365,11 @@ set_clacifier
   ${return_value}=   Get Text  ${locator.view.${field_name}}
   Sleep  3
   [Return]  ${return_value}
+
+Отримати інформацію про status
+  ${return_value}=  Get Text  xpath=//div[@class='auction_title']/div/div[2]/span
+  ${return_value}=  convert_tabua_string_to_common_string  ${return_value}
+  [return]  ${return_value}
 
 #############   classification.description   #################
 Отримати інформацію із classification.description
@@ -666,7 +681,7 @@ set_clacifier
   Sleep    5
   ${url_elements}=    Get Webelements        xpath=//input[contains(@id, "prozorro_auction_documents_attributes") and contains(@id, "url")]
   Input Text         ${url_elements[-1]}          ${urlpath}
-  Sleep  3
+  Sleep  5
   Click Element     xpath=//input[@name="commit"]
   Sleep  5
   Reload Page
@@ -678,7 +693,7 @@ set_clacifier
   Wait Until Page Contains Element      xpath=//input[contains(@id, "prozorro_auction_documents_attributes") and contains(@id, "url")]    10
   ${url_elements}=    Get Webelements        xpath=//input[contains(@id, "prozorro_auction_documents_attributes") and contains(@id, "url")]
   Input Text         ${url_elements[1]}          ${accessDetails}
-  Sleep  3
+  Sleep  5
   Click Element     xpath=//input[@name="commit"]
   Sleep  5
 
@@ -697,6 +712,7 @@ set_clacifier
 Check if question on page by id
   [Arguments]  ${q_id}
    : FOR   ${INDEX}  IN RANGE    1   15
+  \   Log To Console   .   no_newline=true
   \   ${text}=   Get Matching Xpath Count   xpath=//ul[@class="questions_list"]//div[@class="question_title" and contains(text(),"${q_id}")]
   \   Exit For Loop If  '${text}' > '0'
   \   Sleep     10
@@ -937,7 +953,6 @@ Check if question on page by num
   ${result}=    convert_to_price    ${dollar}    ${cent}
   [return]  ${result}
 
-
 ######### Document Viewer ###########
 Отримати документ
   [Arguments]  ${username}  ${tender_uaid}  ${doc_id}
@@ -972,16 +987,6 @@ Check if question on page by num
   Run Keyword And Return If    '${ARGUMENTS[3]}' == 'title'    Get Text   xpath=//a[contains(text(), '${ARGUMENTS[2]}')]
   [Return]
 
-Отримати інформацію про status
-  [Arguments]  @{ARGUMENTS}
-  [Documentation]
-  ...      ${ARGUMENTS[0]} ==  username
-  ...      ${ARGUMENTS[1]} ==  tenderId
-  tabua.Пошук тендера по ідентифікатору    ${ARGUMENTS[0]}   ${ARGUMENTS[1]}
-  ${return_value}=  Get Text  xpath=//div[@class='auction_title']/div/div[2]/span
-  ${return_value}=  convert_tabua_string_to_common_string  ${return_value}
-  [return]  ${return_value}
-
 Отримати посилання на аукціон для глядача
   [Arguments]  @{ARGUMENTS}
   [Documentation]
@@ -999,6 +1004,7 @@ Check if question on page by num
   [Documentation]
   ...      ${ARGUMENTS[0]} ==  username
   ...      ${ARGUMENTS[1]} ==  tenderId
+
   Sleep  120
   Reload Page
   Wait Until Page Contains Element    xpath=//div[@class="bid_auction_link"]/a     300
@@ -1040,7 +1046,6 @@ Check if question on page by num
 
 Дискваліфікувати постачальника
   [Arguments]  ${username}  ${tender_id}  ${award_num}  ${description}
-  # Total Rejection We take part of test from Upload decision KeyWord.
   ${opened}=    Run Keyword And return Status    Wait Until Element Is Visible    xpath=//span[@class="button to_modal"]    10s
   Wait Until Page Contains Element      xpath=//div[contains (@class, "columns bid_status bid_status_contract_pending")]    150
   Reload Page
@@ -1072,8 +1077,9 @@ Check if question on page by num
   Sleep     2
   Wait Until Page Contains Element      xpath=//div[@class="contract_confirm_document"]
   Input Text    id=prozorro_contract_contract_number     ${ARGUMENTS[2]}
-  Sleep     1
-  Input Text    id=prozorro_contract_date_signed     get_currt_date
+  Sleep     5
+  ${cdate} =    get_currt_date
+  Input Text    id=prozorro_contract_date_signed     ${cdate}
   Sleep     5
   Click Element    xpath=//a[@class="button btn_white documents_add add_fields"]
   Sleep  5

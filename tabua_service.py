@@ -173,9 +173,25 @@ def convert_tabua_string_to_common_string(string):
         u"Аукціон не відбувся" : u"unsuccessful",
     }.get(string, string)
 
+def convert_cancellations_status(cancel_reas):
+    return {
+        u"ПРИЧИНА СКАСУВАННЯ АУКЦІОНУ": u"active",
+    }.get(cancel_reas, cancel_reas)
+
 def download_file(url, file_name, output_dir):
     urllib.urlretrieve(url, ('{}/{}'.format(output_dir, file_name)))
 
 def get_currt_date():
     i = datetime.datetime.now()
     return i.strftime('%d.%m.%Y')
+
+def get_tag_field(doc_type):
+    doc_tags_dict = {
+        u'tenderNotice': u'tender_notice',
+        u'x_presentation': u'x_presentation',
+        u'technicalSpecifications': u'technical_specifications'
+    }
+    if doc_type in doc_tags_dict:
+        return doc_tags_dict[doc_type]
+    else:
+        return u'tender_notice'

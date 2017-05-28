@@ -205,7 +205,6 @@ set_clacifier
   [Documentation]
   ...      ${ARGUMENTS[0]} ==  username
   ...      ${ARGUMENTS[1]} ==  ${TENDER_UAID}
-  Log To Console   Who is it_0 - ${ARGUMENTS[0]}
   Switch browser   ${ARGUMENTS[0]}
   Run Keyword If   '${ARGUMENTS[0]}' == 'tabua_Owner'   Go To  ${BROKERS['tabua'].auctionpage}
   Run Keyword If   '${ARGUMENTS[0]}' != 'tabua_Owner'   Go To  ${BROKERS['tabua'].startpage}
@@ -251,7 +250,7 @@ set_clacifier
 
 Отримати інформацію про auctionPeriod.startDate
   ${return_value}=    Get Element Attribute    xpath=//span[@class="eauction_date_detail"]@data-auction-start
-  [Return]    ${return_value}
+   [Return]    ${return_value}
 
 Отримати інформацію про tenderPeriod.startDate
   ${return_value}=    Get Element Attribute    xpath=//span[@class="entry_submission_start_detail"]@data-tender-start
@@ -299,7 +298,6 @@ set_clacifier
   ${award_status} =    Get Text    xpath=//ul[@class="accordion bids_list"]/li/a/div[@class="row"]/div[contains(@class, "bid_status")][1]
   ${correct_status}=    convert_nt_string_to_common_string      ${award_status}
   [Return]    ${correct_status}
-
 
 ####  Client  #################
 Отримати інформацію про title
@@ -474,6 +472,19 @@ set_clacifier
     ${return_value}=   get_select_unit_name      ${return_value}
     [Return]  ${return_value}
 
+Отримати інформацію про eligibilityCriteria
+# “Incorrect requirement, see the decision of DGF from 21.01.2017
+  [Return]  'Only licensed financial institutions are eligible to participate.'
+
+Отримати інформацію про cancellations[0].status
+  ${return_value}=  Get Text  xpath=//div[@class='callout warning']/div[@class='form_subtitle']
+  ${return_value}=  convert_cancellations_status    ${return_value}
+  [return]  ${return_value}
+
+Отримати інформацію про cancellations[0].reason
+  ${return_value}=  Get Text  xpath=//div[@class='callout warning']/div[@class='blue_block']
+  [return]  ${return_value}
+
 Додати предмет закупівлі
   [Arguments]   @{ARGUMENTS}
   [Documentation]
@@ -487,10 +498,6 @@ set_clacifier
   ...     ${ARGUMENTS[0]} == username
   ...     ${ARGUMENTS[1]} == tender_uaid
   ...     ${ARGUMENTS[2]} == item_id
-
-Отримати інформацію про eligibilityCriteria
-# “Incorrect requirement, see the decision of DGF from 21.01.2017
-  [Return]  'Only licensed financial institutions are eligible to participate.'
 
 ######### Item info #########
 Отримати інформацію із предмету
@@ -632,6 +639,7 @@ set_clacifier
   ${add_doc_button}=   Get Webelements     xpath=//a[@class="button btn_white documents_add add_fields"]
   Click Element       ${add_doc_button[-1]}
   Choose File       xpath=//input[@type="file"]        ${file_path}
+  Sleep  5
   Click Element     xpath=//input[@name="commit"]
   Sleep  5
 
@@ -642,7 +650,14 @@ set_clacifier
   Wait Until Element Is Visible  	xpath=//div[text()[contains(.,'Редагування аукціону')]]    10
   ${add_doc_button}=   Get Webelements     xpath=//a[@class="button btn_white documents_add add_fields"]
   Click Element       ${add_doc_button[-2]}
-  Sleep    20
+  Sleep    5
+  ${select_elements} =    Get Webelements     xpath=//span[@dir="ltr"]
+  ${len_els} =    Get Length    ${select_elements}
+  Click Element       ${select_elements[-1]}
+  ${doc_tag} =    get_tag_field    ${doc_type}
+  Sleep    5
+  Click Element       xpath=//li[contains(@id, "${doc_tag}")]
+  Sleep    5
   Choose File       xpath=//input[@type="file"]        ${file_path}
   Click Element     xpath=//input[@name="commit"]
   Sleep   5
@@ -654,8 +669,9 @@ set_clacifier
   Run Keyword If	${at_auc_page}	Click Element   xpath=//a[text()[contains(.,'Змінити')]]
   Wait Until Element Is Visible	    xpath=//div[text()[contains(.,'Редагування аукціону')]]    10
   ${add_doc_button}=   Get Webelements     xpath=//a[@class="button btn_white documents_add add_fields"]
-  Click Element       ${add_doc_button[-2]}
+  Click Element       ${add_doc_button[0]}
   Choose File       xpath=//input[@type="file"]        ${filepath}
+  Sleep  5
   Click Element     xpath=//input[@name="commit"]
   Sleep  5
 
@@ -692,7 +708,8 @@ set_clacifier
   Run Keyword If	${at_auc_page}	Click Element   xpath=//a[text()[contains(.,'Змінити')]]
   Wait Until Page Contains Element      xpath=//input[contains(@id, "prozorro_auction_documents_attributes") and contains(@id, "url")]    10
   ${url_elements}=    Get Webelements        xpath=//input[contains(@id, "prozorro_auction_documents_attributes") and contains(@id, "url")]
-  Input Text         ${url_elements[1]}          ${accessDetails}
+  ${url_elements_length}=    Get Length    ${url_elements}
+  Input Text         ${url_elements[-1]}          ${accessDetails}
   Sleep  5
   Click Element     xpath=//input[@name="commit"]
   Sleep  5
@@ -731,7 +748,6 @@ set_clacifier
 Check if question on page by id
   [Arguments]  ${q_id}
    : FOR   ${INDEX}  IN RANGE    1   15
-  \   Log To Console   .   no_newline=true
   \   ${text}=   Get Matching Xpath Count   xpath=//ul[@class="questions_list"]//div[@class="question_title" and contains(text(),"${q_id}")]
   \   Exit For Loop If  '${text}' > '0'
   \   Sleep     10
@@ -1100,8 +1116,8 @@ Check if question on page by num
   Input Text    id=prozorro_contract_date_signed     ${cdate}
   Sleep     5
   Click Element    xpath=//a[@class="button btn_white documents_add add_fields"]
-  Sleep  5
+  Sleep    5
   Choose File      xpath=//input[@type="file"]        ${ARGUMENTS[3]}
-  Sleep  5
+  Sleep    5
   Click Element    xpath=//input[@name="commit"]
-  Sleep  5
+  Sleep    5

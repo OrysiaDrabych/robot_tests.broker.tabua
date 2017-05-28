@@ -670,7 +670,7 @@ set_clacifier
   Input Text         ${url_elements[0]}          ${vdr_url}
   Sleep    5
   Click Element     xpath=//input[@name="commit"]
-  Sleep    5
+  Sleep    10
 
 Додати публічний паспорт активу
   [Arguments]  ${user_name}  ${tender_id}  ${urlpath}
@@ -696,6 +696,25 @@ set_clacifier
   Sleep  5
   Click Element     xpath=//input[@name="commit"]
   Sleep  5
+
+Скасувати закупівлю
+  [Arguments]  ${user_name}  ${tender_id}  ${reason}  ${doc_path}  ${description}
+  tabua.Пошук тендера по ідентифікатору  ${user_name}  ${tender_id}
+  Click Element                         xpath=//a[contains(@class, "button btn_white cancel_auction warning") and contains(@class, "add_fields")]
+  Wait Until Element Is Visible			xpath=//span[contains(@id, "select2-prozorro_auction_cancellations_attributes_") and contains(@id, "_reason_ua-container")]    5
+  Sleep    5
+  Click Element                         xpath=//span[@role="presentation"]
+  Sleep    5
+  Input Text                            xpath=//input[@role="textbox"]    ${reason}
+  Sleep    5
+  Click Element                         xpath=//li[contains(@id, "select2-prozorro_auction_cancellations_attributes_")]
+  Sleep    5
+  Click Element                         xpath=//a[@class="button btn_white documents_add add_fields"]
+  Sleep    5
+  Choose File                           xpath=//input[@type="file"]        ${doc_path}
+  Sleep    5
+  Click Element                         xpath=//input[@name="commit"]
+  Sleep    5
 
 #################### Questions ######################
 
@@ -898,7 +917,6 @@ Check if question on page by num
   Click Element    ${doc_buttons[0]}
   Sleep    1
   ${inp_files} =    Get Webelements    xpath=//input[@type="file"]
-  ${ln} =    Get Length    ${inp_files}
   Choose File        ${inp_files[0]}       ${file_path}
   Sleep    2
 
@@ -953,6 +971,7 @@ Check if question on page by num
   ${result}=    convert_to_price    ${dollar}    ${cent}
   [return]  ${result}
 
+
 ######### Document Viewer ###########
 Отримати документ
   [Arguments]  ${username}  ${tender_uaid}  ${doc_id}
@@ -1004,7 +1023,6 @@ Check if question on page by num
   [Documentation]
   ...      ${ARGUMENTS[0]} ==  username
   ...      ${ARGUMENTS[1]} ==  tenderId
-
   Sleep  120
   Reload Page
   Wait Until Page Contains Element    xpath=//div[@class="bid_auction_link"]/a     300
@@ -1016,13 +1034,13 @@ Check if question on page by num
   Click Element    xpath=//div[contains (@class, "columns bid_status bid_status_award_pending_verification")]
   Wait Until Element Is Visible    xpath=//span[@class="button to_modal"]    5
   Click Element    xpath=//span[@class="button to_modal"]
-  Sleep  2
+  Sleep  5
   Click Element    xpath=//a[@class="button btn_white documents_add add_fields"]
-  Sleep  2
+  Sleep  5
   Choose File      xpath=//input[@type="file"]        ${auction_protocol_path}
-  Sleep  2
+  Sleep  5
   Click Element    xpath=//input[@name="commit"]
-  Sleep  3
+  Sleep  5
 
 Підтвердити наявність протоколу аукціону
   [Arguments]   @{ARGUMENTS}
@@ -1039,26 +1057,26 @@ Check if question on page by num
   Run Keyword If     '${winner_open}' != 'True'    Click Element    xpath=//div[contains (@class, "columns bid_status bid_status_award_pending_payment")]
   Sleep     2
   Click Element  xpath=//span[@class="button to_modal"]
-  Sleep     2
+  Sleep     5
   Run Keyword If    '${TEST NAME}' == 'Можливість підтвердити оплату першого кандидата'   Click Element  xpath=//input[@name="commit"]
   Run Keyword If    '${TEST NAME}' == 'Можливість підтвердити оплату другого кандидата'   Click Element  xpath=//input[@name="commit"]
-  Sleep     2
+  Sleep     5
 
 Дискваліфікувати постачальника
   [Arguments]  ${username}  ${tender_id}  ${award_num}  ${description}
   ${opened}=    Run Keyword And return Status    Wait Until Element Is Visible    xpath=//span[@class="button to_modal"]    10s
-  Wait Until Page Contains Element      xpath=//div[contains (@class, "columns bid_status bid_status_contract_pending")]    150
+  Wait Until Page Contains Element      xpath=//div[contains(@class, "columns bid_status bid_status_contract_pending") or contains(@class, "columns bid_status bid_status_award_pending_verification") or contains(@class, "columns bid_status bid_status_award_pending_payment")]    150
   Reload Page
-  Wait Until Page Contains Element      xpath=//div[contains (@class, "columns bid_status bid_status_contract_pending")]    20
+  Wait Until Page Contains Element      xpath=//div[contains(@class, "columns bid_status bid_status_contract_pending") or contains(@class, "columns bid_status bid_status_award_pending_verification") or contains(@class, "columns bid_status bid_status_award_pending_payment")]    20
   Sleep    3
-  Run Keyword If     '${opened}' != 'True'    Click Element    xpath=//div[contains (@class, "columns bid_status bid_status_contract_pending")]
-  Sleep     2
+  Run Keyword If     '${opened}' != 'True'    Click Element    xpath=//div[contains (@class, "columns bid_status bid_status_contract_pending") or contains(@class, "columns bid_status bid_status_award_pending_verification") or contains(@class, "columns bid_status bid_status_award_pending_payment")]
+  Sleep     5
   Click Element     xpath=//span[@class="button warning to_modal"]
-  Sleep     2
+  Sleep     5
   Wait Until Page Contains Element      xpath=//input[@class="validate-required"]
   Input Text    id=prozorro_award_title_ua           ${description}
   Input Text    id=prozorro_award_description_ua     ${description}
-  Sleep     2
+  Sleep     5
   Click Element  xpath=//input[@name="commit"]
   Sleep     5
 
@@ -1072,9 +1090,9 @@ Check if question on page by num
   ${opened}=    Run Keyword And return Status    Wait Until Element Is Visible    xpath=//span[@class="button to_modal"]    30s
   Wait Until Page Contains Element      xpath=//div[contains (@class, "columns bid_status bid_status_contract_pending")]    120
   Run Keyword If     '${opened}' != 'True'    Click Element    xpath=//div[contains (@class, "columns bid_status bid_status_contract_pending")]
-  Sleep     5
-  Click Element     xpath=//span[@class="button to_modal"]
   Sleep     2
+  Click Element     xpath=//span[@class="button to_modal"]
+  Sleep     5
   Wait Until Page Contains Element      xpath=//div[@class="contract_confirm_document"]
   Input Text    id=prozorro_contract_contract_number     ${ARGUMENTS[2]}
   Sleep     5
@@ -1086,4 +1104,4 @@ Check if question on page by num
   Choose File      xpath=//input[@type="file"]        ${ARGUMENTS[3]}
   Sleep  5
   Click Element    xpath=//input[@name="commit"]
-  Sleep  3
+  Sleep  5

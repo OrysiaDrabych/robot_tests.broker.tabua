@@ -290,16 +290,20 @@ set_clacifier
   [return]  ${res}
 
 Отримати інформацію про awards[0].status
+  Sleep    30
   Reload Page
   Sleep     10
-  ${award_status} =    Get Text    xpath=//ul[@class="accordion bids_list"]//div[contains(@class, "bid_status")]/span[0]
+  ${award_status_blocks} =    Get Webelements     xpath=//ul[@class="accordion bids_list"]//div[contains(@class, "bid_status")]/span
+  ${award_status} =    Get Text    ${award_status_blocks[0]}
   ${correct_status}=    convert_nt_string_to_common_string      ${award_status}
   [Return]    ${correct_status}
 
 Отримати інформацію про awards[1].status
+  Sleep    30
   Reload Page
   Sleep     10
-  ${award_status} =    Get Text    xpath=//ul[@class="accordion bids_list"]//div[contains(@class, "bid_status")]/span[1]
+  ${award_status_blocks} =    Get Webelements     xpath=//ul[@class="accordion bids_list"]//div[contains(@class, "bid_status")]/span
+  ${award_status} =    Get Text    ${award_status_blocks[1]}
   ${correct_status}=    convert_nt_string_to_common_string      ${award_status}
   [Return]    ${correct_status}
 
@@ -1026,6 +1030,7 @@ Check if question on page by num
   ...       ${ARGUMENTS[3]} == field
   Sleep     2
   Run Keyword And Return If    '${ARGUMENTS[3]}' == 'title'    Get Text   xpath=//a[contains(text(), '${ARGUMENTS[2]}')]
+  Run Keyword And Return If    '${ARGUMENTS[3]}' == 'description'    Get Text   xpath=//div[contains(@class, "document_description")]
   [Return]
 
 Отримати посилання на аукціон для глядача

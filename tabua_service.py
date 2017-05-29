@@ -132,7 +132,16 @@ def get_next_description(desc1, desc2, desc3):
         return desc3
 
 def convert_nt_string_to_common_string(proc_method):
-    return proc_method.split(':')[-1].strip()
+    return {
+        u"Очікується підписання протоколу": u'pending.verification',
+        u"Очікується оплата": u'pending.payment',
+        u"Очікується підписання договора": 'pending',
+        u"Очікує дискваліфікації першого учасника": u'pending.waiting',
+        u"Договір скасовано": u'cancelled',
+        u"Дискваліфіковано": u'unsuccessful',
+        u"Опубліковано": u'active',
+        u"Пропозицію анульовано": u'invalid',
+    }.get(proc_method, proc_method)
 
 def convert_string_to_integer(_str):
     return {

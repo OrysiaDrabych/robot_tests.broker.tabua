@@ -733,6 +733,8 @@ set_clacifier
   Sleep    5
   Choose File                           xpath=//input[@type="file"]        ${doc_path}
   Sleep    5
+  Input Text                            xpath=//input[@id="cancellation_file_description"]    ${description}
+  Sleep    5
   Click Element                         xpath=//input[@name="commit"]
   Sleep    10
 
@@ -1130,5 +1132,18 @@ Check if question on page by num
   [Arguments]  ${username}  ${tender_uaid}  ${award_num}
   Sleep    20
   tabua.Пошук тендера по ідентифікатору    ${username}   ${tender_uaid}
-  Log To Console    Підтвердити підписання контракту 111111
   Wait Until Page Contains Element      xpath=//span[text()[contains(.,'Договір підписано')]]    15
+
+Скасування рішення кваліфікаційної комісії
+  [Arguments]  ${username}  ${tender_uaid}  ${award_num}
+  Sleep    5
+  Click Element    xpath=//div[@class, "your_bid"]//sppan[@class="button warning to_modal"]
+  Wait Until Element Is Visible    xpath=//div[contains(text(), "Відмова від очікування")]    10
+  Click Element    xpath=//label[@for="prozorro_award_confirm_cancellation"]
+  ${file_path}  ${file_name}  ${file_content}=  create_fake_doc
+  Click Element    xpath=//a[@class="button btn_white documents_add add_fields"]
+  Sleep  5
+  Choose File      xpath=//input[@type="file"]        ${file_path}
+  Sleep  5
+  Click Element    xpath=//input[@name="commit"]
+  Sleep  10

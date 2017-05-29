@@ -146,6 +146,7 @@ def convert_nt_string_to_common_string(proc_method):
 def convert_string_to_integer(_str):
     return {
         u"Вперше.": 1,
+        u"Вперше": 1,
         u"Вдруге": 2,
         u"Втрете": 3,
         u"Вчетверте": 4,

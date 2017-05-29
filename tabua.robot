@@ -249,11 +249,15 @@ set_clacifier
   [Return]    ${return_value}
 
 Отримати інформацію про auctionPeriod.startDate
-  ${return_value}=    Get Element Attribute    xpath=//span[@class="eauction_date_detail"]@data-auction-start
-   [Return]    ${return_value}
+  ${return_value}=    Get Element Attribute    xpath=//span[@class="auction_date_detail"]@data-auction-start
+  [Return]    ${return_value}
 
 Отримати інформацію про tenderPeriod.startDate
   ${return_value}=    Get Element Attribute    xpath=//span[@class="entry_submission_start_detail"]@data-tender-start
+  [Return]    ${return_value}
+
+Отримати інформацію про auctionPeriod.endDate
+  ${return_value}=    Get Element Attribute    xpath=//span[@class="auction_date_detail"]@data-auction-end
   [Return]    ${return_value}
 
 Отримати інформацію про value.amount
@@ -298,6 +302,7 @@ set_clacifier
   ${award_status} =    Get Text    xpath=//ul[@class="accordion bids_list"]/li/a/div[@class="row"]/div[contains(@class, "bid_status")][1]
   ${correct_status}=    convert_nt_string_to_common_string      ${award_status}
   [Return]    ${correct_status}
+
 
 ####  Client  #################
 Отримати інформацію про title
@@ -555,7 +560,6 @@ set_clacifier
   Run Keyword If	${at_auc_page}	Перейти на сторінку зміни параметрів аукціону   ${field}	${value}
   Run Keyword If	${at_auc_page}!=True	Перевірити доступність зміни і змінити лот    ${field}	${value}
 
-
 Перейти на сторінку зміни параметрів аукціону
   [Arguments]  ${field}    ${value}
   Click Element   xpath=//a[text()[contains(.,'Змінити')]]
@@ -682,7 +686,6 @@ set_clacifier
   Run Keyword If	${at_auc_page}	Click Element   xpath=//a[text()[contains(.,'Змінити')]]
   Wait Until Page Contains Element      xpath=//input[contains(@id, "prozorro_auction_documents_attributes") and contains(@id, "url")]    10
   ${url_elements}=    Get Webelements        xpath=//input[contains(@id, "prozorro_auction_documents_attributes") and contains(@id, "url")]
-  ${len}=    Get Length    ${url_elements}
   Input Text         ${url_elements[0]}          ${vdr_url}
   Sleep    5
   Click Element     xpath=//input[@name="commit"]
@@ -699,7 +702,7 @@ set_clacifier
   Input Text         ${url_elements[-1]}          ${urlpath}
   Sleep  5
   Click Element     xpath=//input[@name="commit"]
-  Sleep  5
+  Sleep  15
   Reload Page
 
 Додати офлайн документ
@@ -731,7 +734,7 @@ set_clacifier
   Choose File                           xpath=//input[@type="file"]        ${doc_path}
   Sleep    5
   Click Element                         xpath=//input[@name="commit"]
-  Sleep    5
+  Sleep    10
 
 #################### Questions ######################
 
@@ -793,6 +796,7 @@ Check if question on page by id
 Check if question on page by num
   [Arguments]  ${num}
   : FOR   ${INDEX}  IN RANGE    1   15
+  \   Log To Console   .   no_newline=true
   \   ${question_list}=    Get Webelements    xpath=//ul[@class="questions_list"]/li/div[@class="question_title"]
   \   ${q_lenght}=    Get Length    ${question_list}
   \   Sleep     10
@@ -918,7 +922,7 @@ Check if question on page by num
   Click Element       xpath=//input[@name="commit"]
   Sleep     5
   Reload Page
-  :FOR   ${INDEX_N}  IN RANGE    1    2
+  :FOR   ${INDEX_N}  IN RANGE    1    5
   \   ${button_change}=    Run Keyword And return Status    Wait Until Element Is Visible  	xpath=//span[@class="button to_modal"]	  10s
   \   Exit For Loop If    ${button_change}
   \   Sleep   5
@@ -1056,7 +1060,7 @@ Check if question on page by num
   Choose File      xpath=//input[@type="file"]        ${auction_protocol_path}
   Sleep  5
   Click Element    xpath=//input[@name="commit"]
-  Sleep  5
+  Sleep  10
 
 Підтвердити наявність протоколу аукціону
   [Arguments]   @{ARGUMENTS}
@@ -1094,7 +1098,7 @@ Check if question on page by num
   Input Text    id=prozorro_award_description_ua     ${description}
   Sleep     5
   Click Element  xpath=//input[@name="commit"]
-  Sleep     5
+  Sleep     10
 
 Завантажити угоду до тендера
   [Arguments]  @{ARGUMENTS}
@@ -1116,8 +1120,8 @@ Check if question on page by num
   Input Text    id=prozorro_contract_date_signed     ${cdate}
   Sleep     5
   Click Element    xpath=//a[@class="button btn_white documents_add add_fields"]
-  Sleep    5
+  Sleep  5
   Choose File      xpath=//input[@type="file"]        ${ARGUMENTS[3]}
-  Sleep    5
+  Sleep  5
   Click Element    xpath=//input[@name="commit"]
-  Sleep    5
+  Sleep  10

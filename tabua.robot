@@ -291,15 +291,15 @@ set_clacifier
 
 Отримати інформацію про awards[0].status
   Reload Page
-  Sleep     2
-  ${award_status} =    Get Text    xpath=//ul[@class="accordion bids_list"]/li/a/div[@class="row"]/div[contains(@class, "bid_status")][0]
+  Sleep     10
+  ${award_status} =    Get Text    xpath=//ul[@class="accordion bids_list"]//div[contains(@class, "bid_status")]/span[0]
   ${correct_status}=    convert_nt_string_to_common_string      ${award_status}
   [Return]    ${correct_status}
 
 Отримати інформацію про awards[1].status
   Reload Page
-  Sleep     2
-  ${award_status} =    Get Text    xpath=//ul[@class="accordion bids_list"]/li/a/div[@class="row"]/div[contains(@class, "bid_status")][1]
+  Sleep     10
+  ${award_status} =    Get Text    xpath=//ul[@class="accordion bids_list"]//div[contains(@class, "bid_status")]/span[1]
   ${correct_status}=    convert_nt_string_to_common_string      ${award_status}
   [Return]    ${correct_status}
 
@@ -1125,3 +1125,10 @@ Check if question on page by num
   Sleep  5
   Click Element    xpath=//input[@name="commit"]
   Sleep  10
+
+Підтвердити підписання контракту
+  [Arguments]  ${username}  ${tender_uaid}  ${award_num}
+  Sleep    20
+  tabua.Пошук тендера по ідентифікатору    ${username}   ${tender_uaid}
+  Log To Console    Підтвердити підписання контракту 111111
+  Wait Until Page Contains Element      xpath=//span[text()[contains(.,'Договір підписано')]]    15

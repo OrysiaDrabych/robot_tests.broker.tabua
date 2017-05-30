@@ -1153,6 +1153,7 @@ Check if question on page by num
 
 Скасування рішення кваліфікаційної комісії
   [Arguments]  ${username}  ${tender_uaid}  ${award_num}
+  tabua.Пошук тендера по ідентифікатору    ${username}    ${tender_uaid}
   Sleep    5
   Click Element    xpath=//span[@class="guarantee_back_button"]
   Wait Until Element Is Visible    xpath=//div[contains(text(), "Відмова від очікування")]    10

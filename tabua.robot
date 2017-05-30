@@ -1154,7 +1154,7 @@ Check if question on page by num
 Скасування рішення кваліфікаційної комісії
   [Arguments]  ${username}  ${tender_uaid}  ${award_num}
   Sleep    5
-  Click Element    xpath=//div[@class, "your_bid"]//span[@class="button warning to_modal"]
+  Click Element    xpath=//span[@class="guarantee_back_button"]
   Wait Until Element Is Visible    xpath=//div[contains(text(), "Відмова від очікування")]    10
   Click Element    xpath=//label[@for="prozorro_award_confirm_cancellation"]
   ${file_path}  ${file_name}  ${file_content}=  create_fake_doc

@@ -137,6 +137,7 @@ def convert_nt_string_to_common_string(proc_method):
         u"Очікується оплата": u'pending.payment',
         u"Очікується підписання договора": u'active',
         u"Очікує дискваліфікації першого учасника": u'pending.waiting',
+        u"Відмова очікування": u'cancelled',
         u"Договір скасовано": u'unsuccessful',
         u"Дискваліфіковано": u'unsuccessful',
         u"Опубліковано": u'active',

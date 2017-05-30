@@ -494,20 +494,6 @@ set_clacifier
   ${return_value}=  Get Text  xpath=//div[@class='callout warning']/div[@class='blue_block']
   [return]  ${return_value}
 
-Додати предмет закупівлі
-  [Arguments]   @{ARGUMENTS}
-  [Documentation]
-  ...     ${ARGUMENTS[0]} == username
-  ...     ${ARGUMENTS[1]} == tender_uaid
-  ...     ${ARGUMENTS[2]} == item_info
-
-Видалити предмет закупівлі
-  [Arguments]   @{ARGUMENTS}
-  [Documentation]
-  ...     ${ARGUMENTS[0]} == username
-  ...     ${ARGUMENTS[1]} == tender_uaid
-  ...     ${ARGUMENTS[2]} == item_id
-
 ######### Item info #########
 Отримати інформацію із предмету
   [Arguments]  @{ARGUMENTS}
@@ -642,20 +628,25 @@ set_clacifier
 Завантажити ілюстрацію
   [Arguments]  ${user_name}  ${tender_id}  ${filepath}
   ${at_auc_page}=    Run Keyword And return Status    Wait Until Element Is Visible	xpath=//a[text()[contains(.,'Змінити')]]	10s
-  Run Keyword If	${at_auc_page}	Click Element   xpath=//a[text()[contains(.,'Змінити')]]
+  Run Keyword If    ${at_auc_page}    Click Element    xpath=//a[text()[contains(.,'Змінити')]]
   Wait Until Element Is Visible	    xpath=//div[text()[contains(.,'Редагування аукціону')]]    10
   ${add_doc_button}=   Get Webelements     xpath=//a[@class="button btn_white documents_add add_fields"]
   Click Element       ${add_doc_button[-1]}
   Choose File       xpath=//input[@type="file"]        ${file_path}
-  Sleep  5
+  Sleep   5
   Click Element     xpath=//input[@name="commit"]
-  Sleep  5
+  Sleep   5
 
 Завантажити документ в тендер з типом
   [Arguments]  ${username}  ${tender_uaid}  ${filepath}  ${doc_type}
   ${at_auc_page}=    Run Keyword And return Status    Wait Until Element Is Visible	xpath=//a[text()[contains(.,'Змінити')]]	10s
-  Run Keyword If	${at_auc_page}	Click Element   xpath=//a[text()[contains(.,'Змінити')]]
+  Run Keyword If    ${at_auc_page}   	Click Element   xpath=//a[text()[contains(.,'Змінити')]]
   Wait Until Element Is Visible  	xpath=//div[text()[contains(.,'Редагування аукціону')]]    10
+  Run Keyword If    '${doc_type}' != 'x_nda'    Додати документ з типом    ${username}  ${tender_uaid}  ${filepath}  ${doc_type}
+  Run Keyword If    '${doc_type}' == 'x_nda'    Додати договір про нерозголошення    ${username}  ${tender_uaid}  ${filepath}
+
+Додати документ з типом
+  [Arguments]  ${username}  ${tender_uaid}  ${filepath}  ${doc_type}
   ${add_doc_button}=   Get Webelements     xpath=//a[@class="button btn_white documents_add add_fields"]
   Click Element       ${add_doc_button[-2]}
   Sleep    5
@@ -666,7 +657,18 @@ set_clacifier
   Sleep    5
   Click Element       xpath=//li[contains(@id, "${doc_tag}")]
   Sleep    5
-  Choose File       xpath=//input[@type="file"]        ${file_path}
+  Choose File       xpath=//input[@type="file"]        ${filepath}
+  Sleep   5
+  Click Element     xpath=//input[@name="commit"]
+  Sleep   5
+
+Додати договір про нерозголошення
+  [Arguments]  ${username}  ${tender_uaid}  ${filepath}
+  ${add_doc_button}=   Get Webelements     xpath=//a[@class="button btn_white documents_add add_fields"]
+  Click Element       ${add_doc_button[-3]}
+  Sleep    5
+  Choose File       xpath=//input[@type="file"]        ${filepath}
+  Sleep   5
   Click Element     xpath=//input[@name="commit"]
   Sleep   5
 
@@ -674,7 +676,7 @@ set_clacifier
   [Arguments]  ${user_name}  ${filepath}  ${tender_id}=${None}
   Sleep    3
   ${at_auc_page}=    Run Keyword And return Status    Wait Until Element Is Visible	xpath=//a[text()[contains(.,'Змінити')]]	10s
-  Run Keyword If	${at_auc_page}	Click Element   xpath=//a[text()[contains(.,'Змінити')]]
+  Run Keyword If    ${at_auc_page}    Click Element    xpath=//a[text()[contains(.,'Змінити')]]
   Wait Until Element Is Visible	    xpath=//div[text()[contains(.,'Редагування аукціону')]]    10
   ${add_doc_button}=   Get Webelements     xpath=//a[@class="button btn_white documents_add add_fields"]
   Click Element       ${add_doc_button[0]}
@@ -687,7 +689,7 @@ set_clacifier
   [Arguments]  ${username}  ${tender_uaid}  ${vdr_url}  ${title}=Sample Virtual Data Room
   Sleep    3
   ${at_auc_page}=   Run Keyword And return Status    Wait Until Element Is Visible	 xpath=//a[text()[contains(.,'Змінити')]]	10s
-  Run Keyword If	${at_auc_page}	Click Element   xpath=//a[text()[contains(.,'Змінити')]]
+  Run Keyword If    ${at_auc_page}    Click Element    xpath=//a[text()[contains(.,'Змінити')]]
   Wait Until Page Contains Element      xpath=//input[contains(@id, "prozorro_auction_documents_attributes") and contains(@id, "url")]    10
   ${url_elements}=    Get Webelements        xpath=//input[contains(@id, "prozorro_auction_documents_attributes") and contains(@id, "url")]
   Input Text         ${url_elements[0]}          ${vdr_url}
@@ -699,7 +701,7 @@ set_clacifier
   [Arguments]  ${user_name}  ${tender_id}  ${urlpath}
   Reload Page
   ${at_auc_page}=   Run Keyword And return Status    Wait Until Element Is Visible	 xpath=//a[text()[contains(.,'Змінити')]]	10s
-  Run Keyword If	${at_auc_page}	Click Element   xpath=//a[text()[contains(.,'Змінити')]]
+  Run Keyword If    ${at_auc_page}    Click Element    xpath=//a[text()[contains(.,'Змінити')]]
   Wait Until Page Contains Element      xpath=//input[contains(@id, "prozorro_auction_documents_attributes") and contains(@id, "url")]    30
   Sleep    5
   ${url_elements}=    Get Webelements        xpath=//input[contains(@id, "prozorro_auction_documents_attributes") and contains(@id, "url")]
@@ -741,6 +743,23 @@ set_clacifier
   Sleep    5
   Click Element                         xpath=//input[@name="commit"]
   Sleep    10
+
+Додати предмет закупівлі
+  [Arguments]   @{ARGUMENTS}
+  [Documentation]
+  ...     ${ARGUMENTS[0]} == username
+  ...     ${ARGUMENTS[1]} == tender_uaid
+  ...     ${ARGUMENTS[2]} == item_info
+  Log To Console    Add predmet - ${ARGUMENTS[2]}
+
+Видалити предмет закупівлі
+  [Arguments]   @{ARGUMENTS}
+  [Documentation]
+  ...     ${ARGUMENTS[0]} == username
+  ...     ${ARGUMENTS[1]} == tender_uaid
+  ...     ${ARGUMENTS[2]} == item_id
+  Log To Console    Del predmet - ${ARGUMENTS[2]}
+
 
 #################### Questions ######################
 
@@ -996,7 +1015,6 @@ Check if question on page by num
   ${cent}= 	    Get Text			xpath=//div[@class="your_bid_amount"]/span/span
   ${result}=    convert_to_price    ${dollar}    ${cent}
   [return]  ${result}
-
 
 ######### Document Viewer ###########
 Отримати документ

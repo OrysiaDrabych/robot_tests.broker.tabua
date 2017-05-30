@@ -639,6 +639,7 @@ set_clacifier
 
 Завантажити документ в тендер з типом
   [Arguments]  ${username}  ${tender_uaid}  ${filepath}  ${doc_type}
+  tabua.Пошук тендера по ідентифікатору    ${username}    ${tender_uaid}
   ${at_auc_page}=    Run Keyword And return Status    Wait Until Element Is Visible	xpath=//a[text()[contains(.,'Змінити')]]	10s
   Run Keyword If    ${at_auc_page}   	Click Element   xpath=//a[text()[contains(.,'Змінити')]]
   Wait Until Element Is Visible  	xpath=//div[text()[contains(.,'Редагування аукціону')]]    10
@@ -649,13 +650,6 @@ set_clacifier
   [Arguments]  ${username}  ${tender_uaid}  ${filepath}  ${doc_type}
   ${add_doc_button}=   Get Webelements     xpath=//a[@class="button btn_white documents_add add_fields"]
   Click Element       ${add_doc_button[-2]}
-  Sleep    5
-  ${select_elements} =    Get Webelements     xpath=//span[@dir="ltr"]
-  ${len_els} =    Get Length    ${select_elements}
-  Click Element       ${select_elements[-1]}
-  ${doc_tag} =    get_tag_field    ${doc_type}
-  Sleep    5
-  Click Element       xpath=//li[contains(@id, "${doc_tag}")]
   Sleep    5
   Choose File       xpath=//input[@type="file"]        ${filepath}
   Sleep   5

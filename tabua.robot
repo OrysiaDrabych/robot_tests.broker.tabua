@@ -1155,7 +1155,7 @@ Check if question on page by num
   [Arguments]  ${username}  ${tender_uaid}  ${award_num}
   tabua.Пошук тендера по ідентифікатору    ${username}    ${tender_uaid}
   Sleep    5
-  Click Element    xpath=//span[@class="guarantee_back_button"]
+  Click Element    xpath=//span[contains(@class, "guarantee_back_button")]
   Wait Until Element Is Visible    xpath=//div[contains(text(), "Відмова від очікування")]    10
   Click Element    xpath=//label[@for="prozorro_award_confirm_cancellation"]
   ${file_path}  ${file_name}  ${file_content}=  create_fake_doc

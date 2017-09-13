@@ -33,7 +33,7 @@ ${locator.view.items[0].description}        xpath=//div[@class="columns blue_blo
 ${locator.view.items[1].description}        xpath=//div[@class="columns blue_block items"]/ul/li[2]/div[@class="small-7 columns"]/div[@class="item_title"]
 ${locator.view.items[2].description}        xpath=//div[@class="columns blue_block items"]/ul/li[3]/div[@class="small-7 columns"]/div[@class="item_title"]
 
-${locator.view.value.amount}         xpath=//span[@class="amount"]
+${locator.view.value.amount}         xpath=//span[@class="start_value_detail"]/span[@class="amount"]
 
 
 *** Keywords ***
@@ -213,7 +213,7 @@ set_clacifier
   \   Input Text        id=q   ${ARGUMENTS[1]}
   \   Click Element   xpath=//input[@class="button btn_search"]
   \   Sleep   3
-  \   ${auc_on_page}=    Run Keyword And return Status    Wait Until Element Is Visible    xpath=//a[@class="auction_title accordion-title"]    10s
+  \   ${auc_on_page}=    Run Keyword And return Status    Wait Until Element Is Visible    xpath=//div[contains(@class, "columns auction_ua_id")]    10s
   \   Exit For Loop If    ${auc_on_page}
   \   Sleep   5
   \   Reload Page
@@ -352,7 +352,7 @@ set_clacifier
   Sleep  5
   Wait Until Page Contains Element     xpath=//div[@class="item_title"]
   ${des}=   GET WEBELEMENTS  xpath=//div[@class="item_classificator"]
-  ${_id}=   Get Text  ${des[0]}
+  ${_id}=   Get Text  ${des[2]}
   [Return]  ${_id.split(': ')[1].split(' -')[0]}
 
 Отримати інформацію про items[1].classification.id
@@ -364,7 +364,7 @@ set_clacifier
 Отримати інформацію про items[2].classification.id
   Wait Until Page Contains Element     xpath=//div[@class="item_title"]
   ${des}=   GET WEBELEMENTS  xpath=//div[@class="item_classificator"]
-  ${_id}=   Get Text  ${des[2]}
+  ${_id}=   Get Text  ${des[0]}
   [Return]  ${_id.split(': ')[1].split(' -')[0]}
 
 Переглянути текст із поля і показати на сторінці
@@ -391,7 +391,7 @@ set_clacifier
   Sleep  5
   Wait Until Page Contains Element     xpath=//div[@class="item_title"]
   ${des}=   GET WEBELEMENTS  xpath=//div[@class="item_title"]
-  ${_id}=   Get Text  ${des[0]}
+  ${_id}=   Get Text  ${des[2]}
   [Return]  ${_id.split(':')[-1].strip()}
 
 Отримати інформацію про items[1].classification.description
@@ -403,7 +403,7 @@ set_clacifier
 Отримати інформацію про items[2].classification.description
   Wait Until Page Contains Element     xpath=//div[@class="item_title"]
   ${des}=   GET WEBELEMENTS  xpath=//div[@class="item_title"]
-  ${_id}=   Get Text  ${des[2]}
+  ${_id}=   Get Text  ${des[0]}
   [Return]  ${_id.split(':')[-1].strip()}
 
 Отримати інформацію про items[0].unit.name
@@ -460,7 +460,7 @@ set_clacifier
 
 Отримати інформацію про items[0].quantity
   ${units}=     Get Webelements     xpath=//div[@class="small-1 small-offset-1 columns"]
-  ${unit_name}=     Get Text    ${units[0]}
+  ${unit_name}=     Get Text    ${units[2]}
   ${unit_name}=  Convert To Integer  ${unit_name.split(' ')[0]}
   [Return]  ${unit_name}
 
@@ -472,7 +472,7 @@ set_clacifier
 
 Отримати інформацію про items[2].quantity
   ${units}=     Get Webelements     xpath=//div[@class="small-1 small-offset-1 columns"]
-  ${unit_name}=     Get Text    ${units[2]}
+  ${unit_name}=     Get Text    ${units[0]}
   ${unit_name}=  Convert To Integer  ${unit_name.split(' ')[0]}
   [Return]  ${unit_name}
 
@@ -519,9 +519,9 @@ set_clacifier
 
 Отримати інформацію із description
   ${descriptions}=   GET WEBELEMENTS  xpath=//div[@class="item_title"]
-  ${description0}=  GET TEXT  ${descriptions[0]}
+  ${description0}=  GET TEXT  ${descriptions[2]}
   ${description1}=  GET TEXT  ${descriptions[1]}
-  ${description2}=  GET TEXT  ${descriptions[2]}
+  ${description2}=  GET TEXT  ${descriptions[0]}
   @{ITEMS}  CREATE LIST  ${description0}  ${description1}  ${description2}
   ${description}=   get_next_description  @{ITEMS}
   [Return]  ${description}
@@ -923,14 +923,12 @@ Check if question on page by num
   ...      ${ARGUMENTS[1]} == tender_uaid
   ...      ${ARGUMENTS[2]} == ${test_bid_data}
   tabua.Пошук тендера по ідентифікатору  ${ARGUMENTS[0]}    ${ARGUMENTS[1]}
-  ${amount}=    Get From Dictionary     ${ARGUMENTS[2].data.value}    amount
+  ${has_value}=    check_has_value   ${ARGUMENTS[2].data}
   Wait Until Element Is Visible			xpath=//div[@class="auction_buttons"]/span[@class="button your_organization_need_verified to_modal"]	20
   Sleep    2
   Click Element     xpath=//div[@class="auction_buttons"]/span[@class="button your_organization_need_verified to_modal"]
-  ${amount_bid}=    Convert To Integer                 ${amount}
-  Sleep     3
-  Clear Element Text  xpath=//input[@id="prozorro_bid_value_attributes_amount"]
-  Input Text          xpath=//input[@id="prozorro_bid_value_attributes_amount"]    ${amount_bid}
+  Run Keyword If   ${has_value}   tabua.Ввести цінову пропозицію    ${ARGUMENTS[2]}
+
   ${confirm_webelements}=    Get Webelements     xpath=//div[@class="form_block confirm_rules"]
   ${conf_len} =    Get Length    ${confirm_webelements}
   :FOR   ${INDEX_C}  IN RANGE    0    ${conf_len}
@@ -938,6 +936,8 @@ Check if question on page by num
   \   Sleep   1
   Sleep     5
   Run Keyword If    '${ARGUMENTS[0]}' == 'tabua_Provider1'    tabua.Подати заявку про непричетність
+  Run Keyword If    '${ARGUMENTS[0]}' == 'tabua_Provider'    tabua.Подати заявку про непричетність
+  Sleep    1
   Click Element       xpath=//input[@name="commit"]
   Sleep     5
   Reload Page
@@ -949,6 +949,14 @@ Check if question on page by num
   Wait Until Element Is Visible	      xpath=//span[@class="button to_modal"]	  10s
   ${result}=    Set Variable    'Вашу пропозицію було прийнято'
   [Return]     ${result}
+
+Ввести цінову пропозицію
+  ${test_bid_data}
+  ${amount}=    Get From Dictionary     ${test_bid_data.data.value}    amount
+  ${amount_bid}=    Convert To Integer                 ${amount}
+  Sleep     3
+  Clear Element Text  xpath=//input[@id="prozorro_bid_value_attributes_amount"]
+  Input Text          xpath=//input[@id="prozorro_bid_value_attributes_amount"]    ${amount_bid}
 
 Подати заявку про непричетність
   ${file_path}  ${file_name}  ${file_content}=  create_fake_doc
@@ -1165,3 +1173,4 @@ Check if question on page by num
   Sleep  5
   Click Element    xpath=//input[@name="commit"]
   Sleep  10
+

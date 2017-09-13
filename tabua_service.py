@@ -105,6 +105,8 @@ def get_region_name(region_name):
 def change_dgf(dgf):
     if 'dgf_financial_assets' in dgf:
         dgf = 'dgfFinancialAssets'
+    elif 'dgf_insider' in dgf:
+        dgf = 'dgfInsider'
     else:
         dgf = 'dgfOtherAssets'
     return dgf
@@ -206,3 +208,7 @@ def get_tag_field(doc_type):
         return doc_tags_dict[doc_type]
     else:
         return u'tender_notice'
+
+def check_has_value(dict):
+    return 'value' in dict
+

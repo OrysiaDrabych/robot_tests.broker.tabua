@@ -382,7 +382,6 @@ set_clacifier
 Отримати інформацію про status
   ${return_value}=  Get Text  xpath=//div[@class='auction_title']/div/div[2]/span
   ${return_value}=  convert_tabua_string_to_common_string  ${return_value}
-  ${return_value}=    Set Variable    active.qualification
   [return]  ${return_value}
 
 

@@ -310,7 +310,7 @@ set_clacifier
   ${award_date_blocks} =    Get Webelements     xpath=//ul[@class="accordion bids_list"]//div[@class="document_date"]
   ${award_date_0}=    Get Text    ${award_date_blocks[0]}
   ${award_date_1}=    Get Text    ${award_date_blocks[1]}
-  ${correct_status}=    get_award_status    ${status_0}  ${status_1}  ${award_date_0}  ${award_date_1}  0
+  ${correct_status}=    get_award_status    ${status_0}  ${status_1}  ${award_date_0}  ${award_date_1}  ${index}
   [Return]    ${correct_status}
 
 ####  Client  #################

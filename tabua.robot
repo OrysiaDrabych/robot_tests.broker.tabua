@@ -35,6 +35,10 @@ ${locator.view.items[2].description}        xpath=//div[@class="columns blue_blo
 
 ${locator.view.value.amount}         xpath=//span[@class="start_value_detail"]/span[@class="amount"]
 
+${asset_index_0}    0
+${asset_index_1}    1
+${asset_index_2}    2
+
 
 *** Keywords ***
 
@@ -42,10 +46,12 @@ ${locator.view.value.amount}         xpath=//span[@class="start_value_detail"]/s
   [Arguments]  @{ARGUMENTS}
   [Documentation]  Відкрити браузер, створити об’єкт api wrapper, тощо
   ...      ${ARGUMENTS[0]} ==  username
+  ${alias}=   Catenate   SEPARATOR=   role_  ${ARGUMENTS[0]}
+  Set Global Variable   ${BROWSER_ALIAS}   ${alias}
   Open Browser
   ...      ${USERS.users['${ARGUMENTS[0]}'].homepage}
   ...      ${USERS.users['${ARGUMENTS[0]}'].browser}
-  ...      alias=${ARGUMENTS[0]}
+  ...      alias=${BROWSER_ALIAS}
   Set Window Size   @{USERS.users['${ARGUMENTS[0]}'].size}
   Set Window Position   @{USERS.users['${ARGUMENTS[0]}'].position}
   Run Keyword If   '${ARGUMENTS[0]}' != 'tabua_Viewer'   Login    ${ARGUMENTS[0]}
@@ -67,7 +73,7 @@ Login
 
 Оновити сторінку з тендером
   [Arguments]  ${user_name}  ${tender_id}
-  Switch Browser	${user_name}
+  Switch Browser	${BROWSER_ALIAS}
   Reload Page
   Sleep    3s
 
@@ -205,13 +211,14 @@ set_clacifier
   [Documentation]
   ...      ${ARGUMENTS[0]} ==  username
   ...      ${ARGUMENTS[1]} ==  ${TENDER_UAID}
-  Switch browser   ${ARGUMENTS[0]}
+  Switch browser   ${BROWSER_ALIAS}
   Run Keyword If   '${ARGUMENTS[0]}' == 'tabua_Owner'   Go To  ${BROKERS['tabua'].auctionpage}
   Run Keyword If   '${ARGUMENTS[0]}' != 'tabua_Owner'   Go To  ${BROKERS['tabua'].startpage}
   :FOR   ${INDEX_N}  IN RANGE    1    15
   \   Wait Until Page Contains Element     id=q  15
   \   Input Text        id=q   ${ARGUMENTS[1]}
-  \   Click Element   xpath=//input[@class="button btn_search"]
+  \   Sleep   3
+  \   Click Element   xpath=//div[@class="columns search_button"]
   \   Sleep   3
   \   ${auc_on_page}=    Run Keyword And return Status    Wait Until Element Is Visible    xpath=//div[contains(@class, "columns auction_ua_id")]    10s
   \   Exit For Loop If    ${auc_on_page}
@@ -289,24 +296,22 @@ set_clacifier
   ${res}=   Get Length       ${items}
   [return]  ${res}
 
-Отримати інформацію про awards[0].status
-  Sleep    30
+Отримати інформацію про awards[${index}].status
+  Sleep    10
   Reload Page
-  Sleep     10
+  Sleep     3
+  ${award_blocks} =    Get Webelements     xpath=//ul[@class="accordion bids_list"]/li
+  :FOR    ${i}    IN RANGE    0    2
+  \    Click Element   ${award_blocks[${i}]}
+  Sleep     3
   ${award_status_blocks} =    Get Webelements     xpath=//ul[@class="accordion bids_list"]//div[contains(@class, "bid_status")]/span
-  ${award_status} =    Get Text    ${award_status_blocks[0]}
-  ${correct_status}=    convert_nt_string_to_common_string      ${award_status}
+  ${status_0}=    Get Text    ${award_status_blocks[0]}
+  ${status_1}=    Get Text    ${award_status_blocks[1]}
+  ${award_date_blocks} =    Get Webelements     xpath=//ul[@class="accordion bids_list"]//div[@class="document_date"]
+  ${award_date_0}=    Get Text    ${award_date_blocks[0]}
+  ${award_date_1}=    Get Text    ${award_date_blocks[1]}
+  ${correct_status}=    get_award_status    ${status_0}  ${status_1}  ${award_date_0}  ${award_date_1}  ${index}
   [Return]    ${correct_status}
-
-Отримати інформацію про awards[1].status
-  Sleep    30
-  Reload Page
-  Sleep     10
-  ${award_status_blocks} =    Get Webelements     xpath=//ul[@class="accordion bids_list"]//div[contains(@class, "bid_status")]/span
-  ${award_status} =    Get Text    ${award_status_blocks[1]}
-  ${correct_status}=    convert_nt_string_to_common_string      ${award_status}
-  [Return]    ${correct_status}
-
 
 ####  Client  #################
 Отримати інформацію про title
@@ -318,9 +323,10 @@ set_clacifier
   [Return]  ${return_value}
 
 Отримати інформацію про description
-  ${desc1}=   Get Text  xpath=//div[@class="small-7 columns auction_description"]
+  ${main_desc}=   Get Text  xpath=//div[@class="small-7 columns auction_description"]
+  ${desc1}=    Get Text  xpath=//div[@class="eligibility_criteria"]
   ${desc2}=   Get Text  xpath=//div[@class="auction_attempts"]
-  ${desc}=  convert_desc  ${desc1}  ${desc2}
+  ${desc}=  convert_desc  ${main_desc}  ${desc1}  ${desc2}
   [Return]  ${desc}
 
 Отримати інформацію про value.valueAddedTaxIncluded
@@ -352,19 +358,19 @@ set_clacifier
   Sleep  5
   Wait Until Page Contains Element     xpath=//div[@class="item_title"]
   ${des}=   GET WEBELEMENTS  xpath=//div[@class="item_classificator"]
-  ${_id}=   Get Text  ${des[2]}
+  ${_id}=   Get Text  ${des[${asset_index_0}]}
   [Return]  ${_id.split(': ')[1].split(' -')[0]}
 
 Отримати інформацію про items[1].classification.id
   Wait Until Page Contains Element     xpath=//div[@class="item_title"]
   ${des}=   GET WEBELEMENTS  xpath=//div[@class="item_classificator"]
-  ${_id}=   Get Text  ${des[1]}
+  ${_id}=   Get Text  ${des[${asset_index_1}]}
   [Return]  ${_id.split(': ')[1].split(' -')[0]}
 
 Отримати інформацію про items[2].classification.id
   Wait Until Page Contains Element     xpath=//div[@class="item_title"]
   ${des}=   GET WEBELEMENTS  xpath=//div[@class="item_classificator"]
-  ${_id}=   Get Text  ${des[0]}
+  ${_id}=   Get Text  ${des[${asset_index_2}]}
   [Return]  ${_id.split(': ')[1].split(' -')[0]}
 
 Переглянути текст із поля і показати на сторінці
@@ -377,6 +383,7 @@ set_clacifier
   ${return_value}=  Get Text  xpath=//div[@class='auction_title']/div/div[2]/span
   ${return_value}=  convert_tabua_string_to_common_string  ${return_value}
   [return]  ${return_value}
+
 
 #############   classification.description   #################
 Отримати інформацію із classification.description
@@ -391,19 +398,19 @@ set_clacifier
   Sleep  5
   Wait Until Page Contains Element     xpath=//div[@class="item_title"]
   ${des}=   GET WEBELEMENTS  xpath=//div[@class="item_title"]
-  ${_id}=   Get Text  ${des[2]}
+  ${_id}=   Get Text  ${des[${asset_index_0}]}
   [Return]  ${_id.split(':')[-1].strip()}
 
 Отримати інформацію про items[1].classification.description
   Wait Until Page Contains Element     xpath=//div[@class="item_title"]
   ${des}=   GET WEBELEMENTS  xpath=//div[@class="item_title"]
-  ${_id}=   Get Text  ${des[1]}
+  ${_id}=   Get Text  ${des[${asset_index_1}]}
   [Return]  ${_id.split(':')[-1].strip()}
 
 Отримати інформацію про items[2].classification.description
   Wait Until Page Contains Element     xpath=//div[@class="item_title"]
   ${des}=   GET WEBELEMENTS  xpath=//div[@class="item_title"]
-  ${_id}=   Get Text  ${des[0]}
+  ${_id}=   Get Text  ${des[${asset_index_2}]}
   [Return]  ${_id.split(':')[-1].strip()}
 
 Отримати інформацію про items[0].unit.name
@@ -460,19 +467,19 @@ set_clacifier
 
 Отримати інформацію про items[0].quantity
   ${units}=     Get Webelements     xpath=//div[@class="small-1 small-offset-1 columns"]
-  ${unit_name}=     Get Text    ${units[2]}
+  ${unit_name}=     Get Text    ${units[${asset_index_0}]}
   ${unit_name}=  Convert To Integer  ${unit_name.split(' ')[0]}
   [Return]  ${unit_name}
 
 Отримати інформацію про items[1].quantity
   ${units}=     Get Webelements     xpath=//div[@class="small-1 small-offset-1 columns"]
-  ${unit_name}=     Get Text    ${units[1]}
+  ${unit_name}=     Get Text    ${units[${asset_index_1}]}
   ${unit_name}=  Convert To Integer  ${unit_name.split(' ')[0]}
   [Return]  ${unit_name}
 
 Отримати інформацію про items[2].quantity
   ${units}=     Get Webelements     xpath=//div[@class="small-1 small-offset-1 columns"]
-  ${unit_name}=     Get Text    ${units[0]}
+  ${unit_name}=     Get Text    ${units[${asset_index_2}]}
   ${unit_name}=  Convert To Integer  ${unit_name.split(' ')[0]}
   [Return]  ${unit_name}
 
@@ -519,9 +526,9 @@ set_clacifier
 
 Отримати інформацію із description
   ${descriptions}=   GET WEBELEMENTS  xpath=//div[@class="item_title"]
-  ${description0}=  GET TEXT  ${descriptions[2]}
-  ${description1}=  GET TEXT  ${descriptions[1]}
-  ${description2}=  GET TEXT  ${descriptions[0]}
+  ${description0}=  GET TEXT  ${descriptions[${asset_index_0}]}
+  ${description1}=  GET TEXT  ${descriptions[${asset_index_1}]}
+  ${description2}=  GET TEXT  ${descriptions[${asset_index_2}]}
   @{ITEMS}  CREATE LIST  ${description0}  ${description1}  ${description2}
   ${description}=   get_next_description  @{ITEMS}
   [Return]  ${description}
@@ -951,7 +958,7 @@ Check if question on page by num
   [Return]     ${result}
 
 Ввести цінову пропозицію
-  ${test_bid_data}
+  [Arguments]  ${test_bid_data}
   ${amount}=    Get From Dictionary     ${test_bid_data.data.value}    amount
   ${amount_bid}=    Convert To Integer                 ${amount}
   Sleep     3
@@ -1058,6 +1065,7 @@ Check if question on page by num
   [Documentation]
   ...      ${ARGUMENTS[0]} ==  username
   ...      ${ARGUMENTS[1]} ==  tenderId
+  Switch Browser   ${BROWSER_ALIAS}
   tabua.Пошук тендера по ідентифікатору    ${ARGUMENTS[0]}   ${ARGUMENTS[1]}
   Sleep  120
   Reload Page
@@ -1070,11 +1078,27 @@ Check if question on page by num
   [Documentation]
   ...      ${ARGUMENTS[0]} ==  username
   ...      ${ARGUMENTS[1]} ==  tenderId
-  Sleep  120
+  Switch Browser   ${BROWSER_ALIAS}
+  tabua.Пошук тендера по ідентифікатору    ${ARGUMENTS[0]}   ${ARGUMENTS[1]}
+  Sleep  30
   Reload Page
-  Wait Until Page Contains Element    xpath=//div[@class="bid_auction_link"]/a     300
+  ${avail_secure_url}=    Run Keyword And return Status    Wait Until Page Contains Element    xpath=//div[@class="bid_auction_link"]/a     300
+  ${url}=    Run Keyword If    ${avail_secure_url}
+    ...      Get Element Attribute    xpath=//div[@class="bid_auction_link"]/a@href
+    ...      ELSE
+    ...      Get Element Attribute    xpath=//span[@class="auction_link"]/a@href
+  Sleep  5
+  [Return]   ${url}
+
+
+Отримати посилання на аукціон для зареєстрованого учасника
   ${url}=  Get Element Attribute    xpath=//div[@class="bid_auction_link"]/a@href
   [Return]   ${url}
+
+Отримати посилання на аукціон для незареєстрованого учасника
+  ${url}=  Get Element Attribute    xpath=//span[@class="auction_link"]/a@href
+  [Return]   ${url}
+
 
 Завантажити протокол аукціону в авард
   [Arguments]   ${user_name}   ${tender_uaid}   ${auction_protocol_path}   ${award_index}
@@ -1165,7 +1189,7 @@ Check if question on page by num
   Sleep    5
   Click Element    xpath=//span[contains(@class, "guarantee_back_button")]
   Wait Until Element Is Visible    xpath=//div[contains(text(), "Відмова від очікування")]    10
-  Click Element    xpath=//label[@for="prozorro_award_confirm_cancellation"]
+  Click Element    xpath=//label[@for="prozorro_bid_confirm_cancellation"]
   ${file_path}  ${file_name}  ${file_content}=  create_fake_doc
   Click Element    xpath=//a[@class="button btn_white documents_add add_fields"]
   Sleep  5
@@ -1173,4 +1197,3 @@ Check if question on page by num
   Sleep  5
   Click Element    xpath=//input[@name="commit"]
   Sleep  10
-

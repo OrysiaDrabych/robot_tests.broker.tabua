@@ -72,8 +72,8 @@ def get_select_unit_name(raw_name):
     }
     return unit_name_dictionary[raw_name]
 
-def convert_desc(desc1, desc2):
-    desc = desc1.replace(desc2, '').strip()
+def convert_desc(main_desc, desc1, desc2):
+    desc = main_desc.replace(desc1, '').replace(desc2, '').strip()
     return desc
 
 def get_nonzero_num(code_str):
@@ -152,7 +152,11 @@ def convert_string_to_integer(_str):
         u"Вперше": 1,
         u"Вдруге": 2,
         u"Втрете": 3,
+        u"Втретє": 3,
         u"Вчетверте": 4,
+        u"Впяте": 5,
+        u"Вшосте": 6,
+        u"Всьоме": 7,
     }.get(_str, _str)
 
 def compare_two_strings(str_1, str_2):
@@ -176,14 +180,15 @@ def convert_tabua_string_to_common_string(string):
         u'document_type_x_presentation': u'x_presentation',
         u'document_type_technicalspecifications': u'technicalspecifications',
         u"document_type_": u"None",
-        u"Очікування пропозицій": u"active.tendering",
+        u"Очікування пропозицій": u"active.auction",
         u"Період аукціону": u"active.auction",
         u"Пропозиції розглянуто": u"active.awarded",
         u"Кваліфікація": u"active.qualification",
         u"Завершений": u"complete",
         u"Відмінений": u"cancelled",
-        u"Аукціон" : u"active.auction",
-        u"Аукціон не відбувся" : u"unsuccessful",
+        u"Аукціон": u"active.auction",
+        u"Аукціон не відбувся": u"unsuccessful",
+        u"Очікування аукціону": u"active.auction"
     }.get(string, string)
 
 def convert_cancellations_status(cancel_reas):
@@ -212,3 +217,11 @@ def get_tag_field(doc_type):
 def check_has_value(dict):
     return 'value' in dict
 
+def get_award_status(status_0, status_1, date_0, date_1, num):
+    status_list = [status_0, status_1]
+    date_list = [date_0, date_1]
+    date_l = [datetime.datetime.strptime(x.split(': ')[1], "%d.%m.%Y %H:%M") for x in date_list]
+    if (date_l[0] > date_l[1] and int(num)) or (date_l[0] < date_l[1] and not int(num)):
+        return convert_nt_string_to_common_string(status_list[0])
+    else:
+        return convert_nt_string_to_common_string(status_list[1])

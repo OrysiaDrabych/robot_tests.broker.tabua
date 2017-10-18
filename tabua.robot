@@ -303,6 +303,7 @@ set_clacifier
   ${award_blocks} =    Get Webelements     xpath=//ul[@class="accordion bids_list"]/li
   :FOR    ${i}    IN RANGE    0    2
   \    Click Element   ${award_blocks[${i}]}
+  \    Sleep    2
   Sleep     3
   ${award_status_blocks} =    Get Webelements     xpath=//ul[@class="accordion bids_list"]//div[contains(@class, "bid_status")]/span
   ${status_0}=    Get Text    ${award_status_blocks[0]}

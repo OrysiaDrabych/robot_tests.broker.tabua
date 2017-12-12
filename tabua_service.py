@@ -11,8 +11,6 @@ def update_test_data(role_name, tender_data):
     }
     if role_name == 'tender_owner':
         tender_data['data']['procuringEntity']['name'] = u'ПАТ "Тест Майно"'
-    if tender_data['data']["tenderAttempts"] == 1:
-        tender_data['data']["tenderAttempts"] =  2
     for el in tender_data['data']['items']:
         if el['unit']['name'] in name_dict:
             el['unit']['name'] = name_dict[el['unit']['name']]

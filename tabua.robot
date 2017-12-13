@@ -1192,6 +1192,9 @@ Check if question on page by num
 
 Завантажити протокол аукціону в авард
   [Arguments]   ${user_name}   ${tender_uaid}   ${auction_protocol_path}   ${award_index}
+  Sleep    30
+  Reload Page
+  Sleep    3
   Click Element    xpath=//div[contains (@class, "columns bid_status bid_status_award_pending_verification")]
   Wait Until Element Is Visible    xpath=//span[@class="button to_modal"]    5
   Click Element    xpath=//span[@class="button to_modal"]
@@ -1229,15 +1232,20 @@ Check if question on page by num
   Wait Until Page Contains Element      xpath=//div[contains(@class, "columns bid_status bid_status_contract_pending") or contains(@class, "columns bid_status bid_status_award_pending_verification") or contains(@class, "columns bid_status bid_status_award_pending_payment")]    150
   Reload Page
   Wait Until Page Contains Element      xpath=//div[contains(@class, "columns bid_status bid_status_contract_pending") or contains(@class, "columns bid_status bid_status_award_pending_verification") or contains(@class, "columns bid_status bid_status_award_pending_payment")]    20
-  Sleep    3
-  Run Keyword If     '${opened}' != 'True'    Click Element    xpath=//div[contains (@class, "columns bid_status bid_status_contract_pending") or contains(@class, "columns bid_status bid_status_award_pending_verification") or contains(@class, "columns bid_status bid_status_award_pending_payment")]
-  Sleep     5
+  Sleep    10
+  Click Element    xpath=//div[contains (@class, "columns bid_status bid_status_contract_pending") or contains(@class, "columns bid_status bid_status_award_pending_verification") or contains(@class, "columns bid_status bid_status_award_pending_payment")]
+  Sleep     10
   Click Element     xpath=//span[@class="button warning to_modal"]
   Sleep     5
   Wait Until Page Contains Element      xpath=//input[@class="validate-required"]
   Input Text    id=prozorro_award_title_ua           ${description}
   Input Text    id=prozorro_award_description_ua     ${description}
-  Sleep     5
+  Sleep     2
+  ${file_path}  ${file_name}  ${file_content}=  create_fake_doc
+  Click Element    xpath=//a[@class="button btn_white documents_add add_fields"]
+  Sleep  5
+  Choose File      xpath=//input[@type="file"]        ${file_path}
+  Sleep     2
   Click Element  xpath=//input[@name="commit"]
   Sleep     10
 

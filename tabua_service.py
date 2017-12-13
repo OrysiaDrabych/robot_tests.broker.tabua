@@ -10,12 +10,17 @@ def update_test_data(role_name, tender_data):
         u'послуга': u'послуга'
     }
     if role_name == 'tender_owner':
-        tender_data['data']['procuringEntity']['name'] = u'ПАТ "Тест Банк"'
-    tender_data['data']['guarantee']['amount'] = tender_data['data']['value']['amount']* 0.011
+        tender_data['data']['procuringEntity']['name'] = u'ПАТ "Тест Майно"'
     for el in tender_data['data']['items']:
         if el['unit']['name'] in name_dict:
             el['unit']['name'] = name_dict[el['unit']['name']]
     return tender_data
+
+def get_html_scheme(classification_scheme):
+    if classification_scheme == 'CPV':
+        return 'cpv'
+    else:
+        return 'cavv2'
 
 def substract(dividend, divisor):
     return int(dividend) - int(divisor)
@@ -46,7 +51,7 @@ def get_select_unit_code(raw_code):
         u'пач': 'RM',
         u"люд/год": "RH",
         u'E48': u'E48',
-        u'H87': u'H87',
+        u'H87': 'MTK',
     }
     return unit_name_dictionary[raw_code]
 
@@ -72,30 +77,31 @@ def get_select_unit_name(raw_name):
     }
     return unit_name_dictionary[raw_name]
 
-def convert_desc(main_desc, desc1, desc2):
-    desc = main_desc.replace(desc1, '').replace(desc2, '').strip()
+def convert_desc(main_desc, desc2):
+    desc = main_desc.replace(desc2, '').strip()
     return desc
 
 def get_nonzero_num(code_str):
     code_str = code_str.split('-')[0]
-    while code_str[-1] == '0':
-        code_str = code_str[:-1]
     if code_str[0] == '0':
-        start_num = 2
+        return len(code_str.strip('0')) + 2, 2
     else:
-        start_num = 1
-    return len(code_str) + 1, start_num
+        return len(code_str.strip('0')) + 1, 1
 
 def repair_start_date(date_s):
     d_list = str(date_s).split('-')
     return '{0}.{1}.{2}'.format(d_list[2][:2], d_list[1], d_list[0])
 
+def repair_contract_period_date(c_date):
+    date_list = c_date.split(u': ')[1].split(u'.')
+    return u'{}-{}-{}T00:00:00+02:00'.format(date_list[2], date_list[1], date_list[0])
+
 def repair_tenderperiod_enddate(date_e):
     # return date_e.split('/')[0].strip()
     return date_e.replace(' / ', ' ').strip() + ':00.000000+03:00'
 
-def get_first_symbols(code_str, num):
-    return 'cav_' + code_str[:int(num)]
+def get_first_symbols(scheme, code_str, num):
+    return scheme + '_' + code_str[:int(num)]
 
 def get_region_name(region_name):
     if region_name == u'місто Київ':
@@ -115,7 +121,7 @@ def get_auc_url(url_id_p):
     return 'http://staging_sale.tab.com.ua/auctions/{}'.format(url_id_p.split('_')[-1])
 
 def get_ua_id(ua_id):
-    if u'UA-EA-' in ua_id:
+    if u'UA-PS-' in ua_id:
         return ua_id
     return ''
 

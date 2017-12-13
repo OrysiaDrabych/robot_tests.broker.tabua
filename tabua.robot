@@ -35,9 +35,10 @@ ${locator.view.items[2].description}        xpath=//div[@class="columns blue_blo
 
 ${locator.view.value.amount}         xpath=//span[@class="start_value_detail"]/span[@class="amount"]
 
-${asset_index_0}    0
+${asset_index_0}    2
 ${asset_index_1}    1
-${asset_index_2}    2
+${asset_index_2}    0
+
 
 
 *** Keywords ***
@@ -97,9 +98,8 @@ Login
   ${budget}=        Get From Dictionary   ${ARGUMENTS[1].data.value}         amount
   ${guarantee}=     Get From Dictionary   ${ARGUMENTS[1].data.guarantee}     amount
   ${step_rate}=     Get From Dictionary   ${ARGUMENTS[1].data.minimalStep}   amount
-  ${dgfDecisionID}=     Get From Dictionary   ${ARGUMENTS[1].data}        dgfDecisionID
-  ${dgfDecisionDate}=   Get From Dictionary   ${ARGUMENTS[1].data}        dgfDecisionDate
   ${tenderAttempts}=    Get From Dictionary   ${ARGUMENTS[1].data}        tenderAttempts
+  ${min_bids_number} =    Get From Dictionary   ${ARGUMENTS[1].data}        minNumberOfQualifiedBids
 
 # Date of auction start
   ${start_date}=    Get From Dictionary   ${ARGUMENTS[1].data.auctionPeriod}    startDate
@@ -107,19 +107,21 @@ Login
   Wait Until Page Contains Element   xpath=//a[contains(text(), "Створити новий аукціон")]   20
   Click Link                         xpath=//a[contains(text(), "Створити новий аукціон")]
 # Selecting DGF Financial asset or DGF Other assets
-  Wait Until Page Contains Element   xpath=//label[@for="prozorro_auction_procurement_method_type_dgf_financial_assets"]   20
-  Run Keyword If  '${mode}' == 'dgfFinancialAssets'  Click Element   xpath=//label[@for="prozorro_auction_procurement_method_type_dgf_financial_assets"]
-  Run Keyword If  '${mode}' == 'dgfOtherAssets'      Click Element   xpath=//label[@for="prozorro_auction_procurement_method_type_dgf_other_assets"]
+  Wait Until Page Contains Element   xpath=//label[@for="prozorro_auction_auction_procedure_rent"]   20
+  Run Keyword If  '${mode}' == 'dgfOtherAssets'  Click Element   xpath=//label[@for="prozorro_auction_auction_procedure_rent"]
+  Run Keyword If  '${mode}' != 'dgfOtherAssets'      Click Element   xpath=//label[@for="prozorro_auction_auction_procedure_rent"]
   Log To Console    Selecting Some procedure ${mode}
 # Input fields tender
   Input Text   ${locator.title}              ${title}
   Input Text   ${locator.description}        ${description}
   Input Text   ${locator.dgfid}              ${dgfID}
 # New fields add
-  Input Text   xpath=//input[@id="prozorro_auction_dgf_decision_id"]    ${dgfDecisionID}
-  Input Text   xpath=//input[@id="prozorro_auction_dgf_decision_date"]  ${dgfDecisionDate}
+  ${string_min_bids_number}      Convert To String    ${min_bids_number}
+  Select From List By Value   xpath=//select[@id="prozorro_auction_minimum_bids"]    ${string_min_bids_number}
+  Sleep    2
   ${tender_attempts}=   Convert To String   ${tenderAttempts}
   Select From List By Value   xpath=//select[@id="prozorro_auction_tender_attempts"]    ${tender_attempts}
+  Sleep    2
 # Auction Start date
   ${inp_start_date}=   repair_start_date   ${start_date}
   Input Text   xpath=//input[@id="prozorro_auction_auction_period_attributes_should_start_after"]    ${inp_start_date}
@@ -147,26 +149,37 @@ Login
   \   ${classification_scheme}=             Get From Dictionary         ${classification}    scheme
   \   ${classification_description}=        Get From Dictionary         ${classification}    description
   \   ${classification_id}=                 Get From Dictionary         ${classification}    id
+  \   ${classification_scheme}=             Get From Dictionary         ${classification}    scheme
   \   ${deliveryaddress}=                   Get From Dictionary         ${item[x]}           deliveryAddress
   \   ${deliveryaddress_postalcode}=        Get From Dictionary         ${deliveryaddress}   postalCode
   \   ${deliveryaddress_countryname}=       Get From Dictionary         ${deliveryaddress}   countryName
   \   ${deliveryaddress_streetaddress}=     Get From Dictionary         ${deliveryaddress}   streetAddress
   \   ${deliveryaddress_region}=            Get From Dictionary         ${deliveryaddress}   region
   \   ${deliveryaddress_locality}=          Get From Dictionary         ${deliveryaddress}   locality
+  \   ${additionalclassifications}=         Get From Dictionary         ${item[x]}           additionalClassifications
+  \   ${additionalclass_dict}=              Get From List               ${additionalclassifications}     0
+  \   ${additional_description}=            Get From Dictionary         ${additionalclass_dict}   description
+  \   ${contractperiod}=                    Get From Dictionary         ${item[x]}           contractPeriod
+  \   ${d_start_date}=                      Get From Dictionary         ${contractperiod}    startDate
+  \   ${d_end_date}=                        Get From Dictionary         ${contractperiod}    endDate
 # Add Item(s)
   \   ${item_descr_field}=   Get Webelements     xpath=//textarea[contains(@id, 'prozorro_auction_items_attributes_') and contains(@id, '_description_ua')]
   \   Input Text    ${item_descr_field[-1]}     ${item_description}
   \   ${item_quantity_field}=   Get Webelements     xpath=//input[contains(@id, 'prozorro_auction_items_attributes') and contains(@id, '_quantity')]
-  \   Input Text    ${item_quantity_field[-1]}           ${item_quantity}
+  \   ${item_quantity_string}      Convert To String    ${item_quantity}
+  \   Input Text    ${item_quantity_field[-1]}           ${item_quantity_string}
   \   ${unit_name_field}=   Get Webelements     xpath=//select[contains(@id, 'prozorro_auction_items_attributes_') and contains(@id, '_unit_code')]
   \   Select From List By Value   ${unit_name_field[-1]}    ${unit_code}
 # Selecting classifier
-  \   ${classifier_field}=      Get Webelements     xpath=//span[@class="btn btn_editing"]
+  \   Sleep   5
+  \   ${classification_scheme_html} =    get_html_scheme    ${classification_scheme}
+  \   ${classifier_field}=      Get Webelements     xpath=//span[@data-type="${classification_scheme_html}"]
   \   Click Element     ${classifier_field[-1]}
   \   Sleep     2
-  \   Input Text        id=search_classification    ${classification_id}
-  \   set_clacifier   ${classification_id}
-  \   Click Element     xpath=//span[@class='button btn_adding']
+  \   set_clacifier   ${classification_id}  ${classification_scheme_html}
+  \   Sleep     2
+  \   ${save_button}=   Get Webelements     xpath=//span[@class='button btn_adding']
+  \   Click Element     ${save_button[-1]}
   \   Sleep     2
 # Add delivery address
   \   ${delivery_zip_field}=   Get Webelements     ${locator.delivery_zip}
@@ -180,6 +193,12 @@ Login
   \   Input Text        ${delivery_town_field[-1]}     ${deliveryaddress_locality}
   \   ${delivery_address_field}=   Get Webelements     ${locator.delivery_address}
   \   Input Text        ${delivery_address_field[-1]}  ${deliveryaddress_streetaddress}
+  \   ${input_d_start_date}=    repair_start_date   ${d_start_date}
+  \   ${start_date_field}=   Get Webelements     xpath=//input[contains(@id, "_contract_period_attributes_start_date")]
+  \   Input Text        ${start_date_field[-1]}  ${input_d_start_date}
+  \   ${input_d_end_date}=    repair_start_date   ${d_end_date}
+  \   ${end_date_field}=   Get Webelements     xpath=//input[contains(@id, "_contract_period_attributes_end_date")]
+  \   Input Text        ${end_date_field[-1]}  ${input_d_end_date}
   \   Run Keyword If   '${INDEX}' < '${item_number}'   Click Element     ${locator.add_item}
   \   Sleep     3
 # Save Auction - publish to CDB
@@ -188,6 +207,7 @@ Login
   Wait Until Page Contains Element     xpath=//div[@class="blue_block top_border"]   60
 # Get Ids
   : FOR   ${INDEX}  IN RANGE    1   15
+  \   Sleep    3
   \   Wait Until Page Contains Element     xpath=//div[@class="blue_block top_border"]
   \   ${id_values}=      Get Webelements     xpath=//div[@class="blue_block top_border"]/div/div
   \   ${uid_val}=   Get Text  ${id_values[3]}
@@ -198,11 +218,10 @@ Login
   [Return]  ${TENDER_UAID}
 
 set_clacifier
-  [Arguments]       ${classification_id}
+  [Arguments]       ${classification_id}  ${scheme}
   ${nonzero_num}  ${start_num}=   get_nonzero_num   ${classification_id}
   :FOR   ${INDEX_N}  IN RANGE    ${start_num}    ${nonzero_num}
-  \   ${first_code_symbols}=   get_first_symbols   ${classification_id}   ${INDEX_N}
-  \   Sleep    3
+  \   ${first_code_symbols}=   get_first_symbols   ${scheme}    ${classification_id}   ${INDEX_N}
   \   Click Element     xpath=//label[starts-with(@for, '${first_code_symbols}')]
   \   Sleep     2
 
@@ -303,7 +322,7 @@ set_clacifier
   :FOR    ${i}    IN RANGE    0    2
   \    ${award_blocks} =    Get Webelements     xpath=//ul[@class="accordion bids_list"]/li
   \    Click Element   ${award_blocks[${i}]}
-  \    Sleep    2
+  \    Sleep   2
   Sleep     3
   ${award_status_blocks} =    Get Webelements     xpath=//ul[@class="accordion bids_list"]//div[contains(@class, "bid_status")]/span
   ${status_0}=    Get Text    ${award_status_blocks[0]}
@@ -325,9 +344,8 @@ set_clacifier
 
 Отримати інформацію про description
   ${main_desc}=   Get Text  xpath=//div[@class="small-7 columns auction_description"]
-  ${desc1}=    Get Text  xpath=//div[@class="eligibility_criteria"]
   ${desc2}=   Get Text  xpath=//div[@class="auction_attempts"]
-  ${desc}=  convert_desc  ${main_desc}  ${desc1}  ${desc2}
+  ${desc}=  convert_desc  ${main_desc}  ${desc2}
   [Return]  ${desc}
 
 Отримати інформацію про value.valueAddedTaxIncluded
@@ -344,7 +362,26 @@ set_clacifier
   [Return]  ${return_value}
 
 Отримати інформацію із classification.scheme
-  ${return_value}=   Get Text  xpath=//div[@class="item_classificator"][1]
+  [Arguments]   @{arguments}
+  [Documentation]
+  ...           ${ARGUMENTS[0]} == user_role
+  ...           ${ARGUMENTS[1]} == auction_id
+  ...           ${ARGUMENTS[2]} == field_name
+  Run Keyword And Return   Отримати інформацію про ${ARGUMENTS[2]}
+
+Отримати Інформацію Про Items[0].classification.scheme
+  Sleep   2
+  ${return_value}=   Get Text  xpath=//div[@class="item_classificator"][[${asset_index_0}]]
+  [return]  ${return_value.split(':')[0]}
+
+Отримати Інформацію Про Items[1].classification.scheme
+  Sleep   2
+  ${return_value}=   Get Text  xpath=//div[@class="item_classificator"][[${asset_index_1}]]
+  [return]  ${return_value.split(':')[0]}
+
+Отримати Інформацію Про Items[2].classification.scheme
+  Sleep   2
+  ${return_value}=   Get Text  xpath=//div[@class="item_classificator"][[${asset_index_2}]]
   [return]  ${return_value.split(':')[0]}
 
 Отримати інформацію із classification.id
@@ -469,20 +506,72 @@ set_clacifier
 Отримати інформацію про items[0].quantity
   ${units}=     Get Webelements     xpath=//div[@class="small-1 small-offset-1 columns"]
   ${unit_name}=     Get Text    ${units[${asset_index_0}]}
-  ${unit_name}=  Convert To Integer  ${unit_name.split(' ')[0]}
+  ${unit_name}=  ${unit_name.split(' ')[0]}
   [Return]  ${unit_name}
 
 Отримати інформацію про items[1].quantity
   ${units}=     Get Webelements     xpath=//div[@class="small-1 small-offset-1 columns"]
   ${unit_name}=     Get Text    ${units[${asset_index_1}]}
-  ${unit_name}=  Convert To Integer  ${unit_name.split(' ')[0]}
+  ${unit_name}=  ${unit_name.split(' ')[0]}
   [Return]  ${unit_name}
 
 Отримати інформацію про items[2].quantity
   ${units}=     Get Webelements     xpath=//div[@class="small-1 small-offset-1 columns"]
   ${unit_name}=     Get Text    ${units[${asset_index_2}]}
-  ${unit_name}=  Convert To Integer  ${unit_name.split(' ')[0]}
+  ${unit_name}=  ${unit_name.split(' ')[0]}
   [Return]  ${unit_name}
+
+Отримати інформацію із contractPeriod.startDate
+  [Arguments]   @{arguments}
+  [Documentation]
+  ...           ${ARGUMENTS[0]} == user_role
+  ...           ${ARGUMENTS[1]} == auction_id
+  ...           ${ARGUMENTS[2]} == field_name
+  Run Keyword And Return   Отримати інформацію про ${ARGUMENTS[2]}
+
+Отримати інформацію про items[0].contractPeriod.startDate
+  ${start_dates} =    Get Webelements     xpath=//div[text()[contains(.,'Початок дії договору: ')]]
+  ${start_date} =     Get Text    ${start_dates[${asset_index_0}]}
+  ${start_date} =     repair_contract_period_date    ${start_date}
+  [Return]  ${start_date}
+
+Отримати інформацію про items[1].contractPeriod.startDate
+  ${start_dates} =    Get Webelements     xpath=//div[text()[contains(.,'Початок дії договору: ')]]
+  ${start_date} =     Get Text    ${start_dates[${asset_index_1}]}
+  ${start_date} =     repair_contract_period_date    ${start_date}
+  [Return]  ${start_date}
+
+Отримати інформацію про items[2].contractPeriod.startDate
+  ${start_dates} =    Get Webelements     xpath=//div[text()[contains(.,'Початок дії договору: ')]]
+  ${start_date} =     Get Text    ${start_dates[${asset_index_2}]}
+  ${start_date} =     repair_contract_period_date    ${start_date}
+  [Return]  ${start_date}
+
+Отримати інформацію із contractPeriod.endDate
+  [Arguments]   @{arguments}
+  [Documentation]
+  ...           ${ARGUMENTS[0]} == user_role
+  ...           ${ARGUMENTS[1]} == auction_id
+  ...           ${ARGUMENTS[2]} == field_name
+  Run Keyword And Return   Отримати інформацію про ${ARGUMENTS[2]}
+
+Отримати інформацію про items[0].contractPeriod.endDate
+  ${end_dates} =    Get Webelements     xpath=//div[text()[contains(.,'Закінчення дії договору: ')]]
+  ${end_date} =     Get Text    ${end_dates[${asset_index_0}]}
+  ${end_date} =     repair_contract_period_date    ${end_date}
+  [Return]  ${end_date}
+
+Отримати інформацію про items[1].contractPeriod.endDate
+  ${end_dates} =    Get Webelements     xpath=//div[text()[contains(.,'Закінчення дії договору: ')]]
+  ${end_date} =     Get Text    ${end_dates[${asset_index_1}]}
+  ${end_date} =     repair_contract_period_date    ${end_date}
+  [Return]  ${end_date}
+
+Отримати інформацію про items[2].contractPeriod.endDate
+  ${end_dates} =    Get Webelements     xpath=//div[text()[contains(.,'Закінчення дії договору: ')]]
+  ${end_date} =     Get Text    ${end_dates[${asset_index_2}]}
+  ${end_date} =     repair_contract_period_date    ${end_date}
+  [Return]  ${end_date}
 
 Отримати інформацію про value.currency
     ${return_value}=   Get Text  xpath=//span[@class="currency"]
@@ -534,19 +623,17 @@ set_clacifier
   ${description}=   get_next_description  @{ITEMS}
   [Return]  ${description}
 
-Отримати інформацію про dgfDecisionDate
-  ${return_value}=   Get Webelements  xpath=//div[@class="small-6 columns"]
-  ${return_value}=   Get Text  ${return_value[1]}
-  [Return]  ${return_value.split(' ')[-1]}
-
-Отримати інформацію про dgfDecisionID
-  ${return_value}=   Get Webelements  xpath=//div[@class="small-6 columns"]
-  ${return_value}=   Get Text  ${return_value[1]}
-  [Return]      ${return_value.split(' ')[0]}
-
 Отримати інформацію про tenderAttempts
   ${return_value}=   Get Text   xpath=//div[@class="tabs-panel is-active main_tab_detail"]/div/div/span
   ${return_value}=   convert_string_to_integer   ${return_value}
+  [Return]      ${return_value}
+
+Отримати інформацію про guarantee.amount
+  Click Element   xpath=//a[contains(@id,'auction_tab_detail_')]
+  Sleep  3
+  ${amaunts}=     Get Webelements     xpath=//span[@class="amount"]
+  ${guarantee_amount}=    Get Text  ${amaunts[-1]}
+  ${return_value} =    Convert To Number   ${guarantee_amount.replace(' ', '').replace(',', '.')}
   [Return]      ${return_value}
 
  ######### Changes #########
@@ -588,7 +675,7 @@ set_clacifier
 
 Змінити minimalStep.amount
     [Arguments]  ${value}
-    Input text	${locator.minimalStep.amount}	'${value}'
+    Input text    ${locator.minimalStep.amount}    '${value}'
 
 Змінити title
   [Arguments]  ${value}
@@ -612,21 +699,14 @@ set_clacifier
 # “Incorrect requirement, see the decision of DGF from 21.01.2017
   Input text	css=input[tid='eligibilityCriteria']	${value}
 
-Змінити guarantee
-    [Arguments]  ${value}
-    Input text	${locator.guaranteeamount}	${value}
-
-Змінити dgfDecisionDate
-    [Arguments]  ${value}
-    Input Text   xpath=//input[@id="prozorro_auction_dgf_decision_date"]  ${value}
+Змінити guarantee.amount
+  [Arguments]  ${value}
+  ${value}   Convert To String     ${value}
+  Input text	${locator.guaranteeamount}	${value}
 
 Змінити dgfID
     [Arguments]  ${value}
     Input Text   ${locator.dgfid}    ${value}
-
-Змінити dgfDecisionID
-    [Arguments]  ${value}
-    Input Text   xpath=//input[@id="prozorro_auction_dgf_decision_id"]    ${value}
 
 Змінити tenderAttempts
   [Arguments]  ${value}
@@ -715,15 +795,14 @@ set_clacifier
 
 Додати офлайн документ
   [Arguments]  ${user_name}  ${tender_id}  ${accessDetails}
+  Reload Page
   ${at_auc_page}=    Run Keyword And return Status    Wait Until Element Is Visible	xpath=//a[text()[contains(.,'Змінити')]]	10s
   Run Keyword If	${at_auc_page}	Click Element   xpath=//a[text()[contains(.,'Змінити')]]
-  Wait Until Page Contains Element      xpath=//input[contains(@id, "prozorro_auction_documents_attributes") and contains(@id, "url")]    10
-  ${url_elements}=    Get Webelements        xpath=//input[contains(@id, "prozorro_auction_documents_attributes") and contains(@id, "url")]
-  ${url_elements_length}=    Get Length    ${url_elements}
-  Input Text         ${url_elements[-1]}          ${accessDetails}
-  Sleep  5
-  Click Element     xpath=//input[@name="commit"]
-  Sleep  5
+  Wait Until Element Is Visible	    xpath=//div[text()[contains(.,'Редагування аукціону')]]    10
+  ${add_doc_button}=   Get Webelements     xpath=//a[@class="button btn_white documents_add add_fields"]
+  Click Element       ${add_doc_button[-1]}
+  Reload Page
+  tabua.Пошук тендера по ідентифікатору  ${user_name}  ${tender_id}
 
 Скасувати закупівлю
   [Arguments]  ${user_name}  ${tender_id}  ${reason}  ${doc_path}  ${description}
@@ -767,13 +846,19 @@ set_clacifier
 
 Задати запитання на тендер
   [Arguments]  ${user_name}  ${tender_id}  ${question_data}
+  Sleep   3
+  Reload Page
   Wait Until Element Is Visible			xpath=//div[@class="columns blue_block questions"]//span[@class="button your_organization_need_verified to_modal"]	 5
   Click Element							xpath=//div[@class="columns blue_block questions"]//span[@class="button your_organization_need_verified to_modal"]
   Wait Until Element Is Visible			id=prozorro_question_title   5
   Input Text							id=prozorro_question_title	${question_data.data.title}
+  Sleep   3
   Input Text							id=prozorro_question_description	${question_data.data.description}
   Click Element							xpath=//input[@name="commit"]
+  Sleep   2
   Check if question on page by id       ${question_data.data.title}
+  Sleep   10
+  Reload Page
 
 Check if question on page by id
   [Arguments]  ${q_id}
@@ -791,7 +876,10 @@ Check if question on page by id
   Click Element							xpath=//div[@class="columns blue_block questions"]//span[@class="button your_organization_need_verified to_modal"]
   Wait Until Element Is Visible			id=prozorro_question_title   20
   Input Text							id=prozorro_question_title	                                    ${question_data.data.title}
-  Click Element							xpath=//span[@class="select2-selection__arrow"]
+  sleep   3
+  ${arrow_elements} =    Get Webelements     xpath=//span[@class="select2-selection__arrow"]
+  ${arrow_length} =    Get Length    ${arrow_elements}
+  Click Element							${arrow_elements[-1]}
   Sleep    2
   Input Text							xpath=//input[@class="select2-search__field"]	                ${item_id}
   Sleep    3
@@ -981,6 +1069,7 @@ Check if question on page by num
   Wait Until Element Is Visible			xpath=//span[@class="button warning to_modal"]	20
   Sleep    2
   Click Element     xpath=//span[@class="button warning to_modal"]
+  Sleep    3
   Wait Until Element Is Visible			xpath=//label[@for="prozorro_bid_confirm_cancellation"]	20
   Click Element     xpath=//label[@for="prozorro_bid_confirm_cancellation"]
   Sleep    2
@@ -1103,6 +1192,9 @@ Check if question on page by num
 
 Завантажити протокол аукціону в авард
   [Arguments]   ${user_name}   ${tender_uaid}   ${auction_protocol_path}   ${award_index}
+  Sleep    30
+  Reload Page
+  Sleep    3
   Click Element    xpath=//div[contains (@class, "columns bid_status bid_status_award_pending_verification")]
   Wait Until Element Is Visible    xpath=//span[@class="button to_modal"]    5
   Click Element    xpath=//span[@class="button to_modal"]
@@ -1140,15 +1232,20 @@ Check if question on page by num
   Wait Until Page Contains Element      xpath=//div[contains(@class, "columns bid_status bid_status_contract_pending") or contains(@class, "columns bid_status bid_status_award_pending_verification") or contains(@class, "columns bid_status bid_status_award_pending_payment")]    150
   Reload Page
   Wait Until Page Contains Element      xpath=//div[contains(@class, "columns bid_status bid_status_contract_pending") or contains(@class, "columns bid_status bid_status_award_pending_verification") or contains(@class, "columns bid_status bid_status_award_pending_payment")]    20
-  Sleep    3
-  Run Keyword If     '${opened}' != 'True'    Click Element    xpath=//div[contains (@class, "columns bid_status bid_status_contract_pending") or contains(@class, "columns bid_status bid_status_award_pending_verification") or contains(@class, "columns bid_status bid_status_award_pending_payment")]
-  Sleep     5
+  Sleep    10
+  Click Element    xpath=//div[contains (@class, "columns bid_status bid_status_contract_pending") or contains(@class, "columns bid_status bid_status_award_pending_verification") or contains(@class, "columns bid_status bid_status_award_pending_payment")]
+  Sleep     10
   Click Element     xpath=//span[@class="button warning to_modal"]
   Sleep     5
   Wait Until Page Contains Element      xpath=//input[@class="validate-required"]
   Input Text    id=prozorro_award_title_ua           ${description}
   Input Text    id=prozorro_award_description_ua     ${description}
-  Sleep     5
+  Sleep     2
+  ${file_path}  ${file_name}  ${file_content}=  create_fake_doc
+  Click Element    xpath=//a[@class="button btn_white documents_add add_fields"]
+  Sleep  5
+  Choose File      xpath=//input[@type="file"]        ${file_path}
+  Sleep     2
   Click Element  xpath=//input[@name="commit"]
   Sleep     10
 
@@ -1190,7 +1287,8 @@ Check if question on page by num
   Sleep    5
   Click Element    xpath=//span[contains(@class, "guarantee_back_button")]
   Wait Until Element Is Visible    xpath=//div[contains(text(), "Відмова від очікування")]    10
-  Click Element    xpath=//label[@for="prozorro_bid_confirm_cancellation"]
+  Wait Until Element Is Visible			xpath=//label[@for="prozorro_award_confirm_cancellation"]	10
+  Click Element    xpath=//label[@for="prozorro_award_confirm_cancellation"]
   ${file_path}  ${file_name}  ${file_content}=  create_fake_doc
   Click Element    xpath=//a[@class="button btn_white documents_add add_fields"]
   Sleep  5

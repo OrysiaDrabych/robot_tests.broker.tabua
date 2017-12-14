@@ -231,3 +231,6 @@ def get_award_status(status_0, status_1, date_0, date_1, num):
         return convert_nt_string_to_common_string(status_list[0])
     else:
         return convert_nt_string_to_common_string(status_list[1])
+
+def get_first_string(str_wt):
+    return float(str_wt.strip().split(' ')[0])

@@ -33,9 +33,10 @@ ${locator.view.items[0].description}        xpath=//div[@class="columns blue_blo
 ${locator.view.items[1].description}        xpath=//div[@class="columns blue_block items"]/ul/li[2]/div[@class="small-7 columns"]/div[@class="item_title"]
 ${locator.view.items[2].description}        xpath=//div[@class="columns blue_block items"]/ul/li[3]/div[@class="small-7 columns"]/div[@class="item_title"]
 
-${locator.view.value.amount}         xpath=//span[@class="start_value_detail"]/span[@class="amount"]
+${locator.view.value.amount}                xpath=//span[@class="start_value_detail"]/span[@class="amount"]
+${locator.view.minNumberOfQualifiedBids}    xpath=//div[@class="blue_block"][3]
 
-${asset_index_0}    2
+${asset_index_0}    -1
 ${asset_index_1}    1
 ${asset_index_2}    0
 
@@ -304,6 +305,14 @@ set_clacifier
   Click Element   xpath=//a[contains(@id,'main_tab_detail_')]
   [Return]   ${return_value}
 
+Отримати інформацію про minNumberOfQualifiedBids
+  Click Element   xpath=//a[contains(@id,'auction_tab_detail_')]
+  Sleep  3
+  ${return_value}=   Отримати текст із поля і показати на сторінці   minNumberOfQualifiedBids
+  Click Element   xpath=//a[contains(@id,'main_tab_detail_')]
+  ${return_value}=   Convert To Number   ${return_value.split(':')[-1].strip()}
+  [Return]   ${return_value}
+
 Отримати кількість предметів в тендері
   [Arguments]  @{ARGUMENTS}
   [Documentation]
@@ -371,17 +380,18 @@ set_clacifier
 
 Отримати Інформацію Про Items[0].classification.scheme
   Sleep   2
-  ${return_value}=   Get Text  xpath=//div[@class="item_classificator"][[${asset_index_0}]]
+  ${scheme_list} =    Get Webelements    xpath=//div[@class="item_classificator"]
+  ${return_value}=   Get Text  ${scheme_list[${asset_index_0}]}
   [return]  ${return_value.split(':')[0]}
 
 Отримати Інформацію Про Items[1].classification.scheme
   Sleep   2
-  ${return_value}=   Get Text  xpath=//div[@class="item_classificator"][[${asset_index_1}]]
+  ${return_value}=   Get Text  xpath=//div[@class="item_classificator"][${asset_index_1}]
   [return]  ${return_value.split(':')[0]}
 
 Отримати Інформацію Про Items[2].classification.scheme
   Sleep   2
-  ${return_value}=   Get Text  xpath=//div[@class="item_classificator"][[${asset_index_2}]]
+  ${return_value}=   Get Text  xpath=//div[@class="item_classificator"][${asset_index_2}]
   [return]  ${return_value.split(':')[0]}
 
 Отримати інформацію із classification.id
@@ -451,6 +461,12 @@ set_clacifier
   ${_id}=   Get Text  ${des[${asset_index_2}]}
   [Return]  ${_id.split(':')[-1].strip()}
 
+Отримати інформацію із additionalClassifications[0].description
+  Sleep  5
+  Wait Until Page Contains Element     xpath=//div[@class="item_title"]
+  ${_id}=   Get Text  xpath=//div[@class="auction_type auction_type_dgf_other_assets"]/span
+  [Return]  ${_id.split(':')[-1].strip()}
+
 Отримати інформацію про items[0].unit.name
   ${units}=     Get Webelements     xpath=//div[@class="small-1 small-offset-1 columns"]
   ${unit_name}=     Get Text    ${units[0]}
@@ -506,19 +522,19 @@ set_clacifier
 Отримати інформацію про items[0].quantity
   ${units}=     Get Webelements     xpath=//div[@class="small-1 small-offset-1 columns"]
   ${unit_name}=     Get Text    ${units[${asset_index_0}]}
-  ${unit_name}=  ${unit_name.split(' ')[0]}
+  ${unit_name}=    get_first_string    ${unit_name}
   [Return]  ${unit_name}
 
 Отримати інформацію про items[1].quantity
   ${units}=     Get Webelements     xpath=//div[@class="small-1 small-offset-1 columns"]
   ${unit_name}=     Get Text    ${units[${asset_index_1}]}
-  ${unit_name}=  ${unit_name.split(' ')[0]}
+  ${unit_name}=    get_first_string    ${unit_name}
   [Return]  ${unit_name}
 
 Отримати інформацію про items[2].quantity
   ${units}=     Get Webelements     xpath=//div[@class="small-1 small-offset-1 columns"]
   ${unit_name}=     Get Text    ${units[${asset_index_2}]}
-  ${unit_name}=  ${unit_name.split(' ')[0]}
+  ${unit_name}=    get_first_string    ${unit_name}
   [Return]  ${unit_name}
 
 Отримати інформацію із contractPeriod.startDate
@@ -675,7 +691,7 @@ set_clacifier
 
 Змінити minimalStep.amount
     [Arguments]  ${value}
-    Input text    ${locator.minimalStep.amount}    '${value}'
+    Input text	${locator.minimalStep.amount}	'${value}'
 
 Змінити title
   [Arguments]  ${value}

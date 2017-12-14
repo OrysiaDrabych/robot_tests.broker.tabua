@@ -687,11 +687,11 @@ set_clacifier
 
 Змінити value.amount
     [Arguments]  ${value}
-    Input text	${locator.value.amount}	'${value}'
+    Input text    ${locator.value.amount}    '${value}'
 
 Змінити minimalStep.amount
     [Arguments]  ${value}
-    Input text	${locator.minimalStep.amount}	'${value}'
+    Input text    ${locator.minimalStep.amount}    '${value}'
 
 Змінити title
   [Arguments]  ${value}

@@ -826,7 +826,7 @@ set_clacifier
   Click Element                         xpath=//a[contains(@class, "button btn_white cancel_auction warning") and contains(@class, "add_fields")]
   Wait Until Element Is Visible			xpath=//span[contains(@id, "select2-prozorro_auction_cancellations_attributes_") and contains(@id, "_reason_ua-container")]    5
   Sleep    5
-  Click Element                         xpath=//span[@role="presentation"]
+  Click Element                         xpath=//span[contains(@aria-labelledby, "_reason_ua-container")]
   Sleep    5
   Input Text                            xpath=//input[@role="textbox"]    ${reason}
   Sleep    5
@@ -836,7 +836,7 @@ set_clacifier
   Sleep    5
   Choose File                           xpath=//input[@type="file"]        ${doc_path}
   Sleep    5
-  Input Text                            xpath=//input[@id="cancellation_file_description"]    ${description}
+#  Input Text                            xpath=//input[@id="cancellation_file_description"]    ${description}
   Sleep    5
   Click Element                         xpath=//input[@name="commit"]
   Sleep    10

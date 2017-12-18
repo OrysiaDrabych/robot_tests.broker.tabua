@@ -386,12 +386,14 @@ set_clacifier
 
 Отримати Інформацію Про Items[1].classification.scheme
   Sleep   2
-  ${return_value}=   Get Text  xpath=//div[@class="item_classificator"][${asset_index_1}]
+  ${scheme_list} =    Get Webelements    xpath=//div[@class="item_classificator"]
+  ${return_value}=   Get Text  ${scheme_list[${asset_index_1}]}
   [return]  ${return_value.split(':')[0]}
 
 Отримати Інформацію Про Items[2].classification.scheme
   Sleep   2
-  ${return_value}=   Get Text  xpath=//div[@class="item_classificator"][${asset_index_2}]
+  ${scheme_list} =    Get Webelements    xpath=//div[@class="item_classificator"]
+  ${return_value}=   Get Text  ${scheme_list[${asset_index_2}]}
   [return]  ${return_value.split(':')[0]}
 
 Отримати інформацію із classification.id
@@ -686,11 +688,11 @@ set_clacifier
   Choose File       xpath=//input[@type="file"]        ${file_path}
 
 Змінити value.amount
-    [Arguments]  ${value}
+    [Arguments]    ${value}
     Input text    ${locator.value.amount}    '${value}'
 
 Змінити minimalStep.amount
-    [Arguments]  ${value}
+    [Arguments]    ${value}
     Input text    ${locator.minimalStep.amount}    '${value}'
 
 Змінити title
@@ -749,6 +751,8 @@ set_clacifier
   Wait Until Element Is Visible  	xpath=//div[text()[contains(.,'Редагування аукціону')]]    10
   Run Keyword If    '${doc_type}' != 'x_nda'    Додати документ з типом    ${username}  ${tender_uaid}  ${filepath}  ${doc_type}
   Run Keyword If    '${doc_type}' == 'x_nda'    Додати договір про нерозголошення    ${username}  ${tender_uaid}  ${filepath}
+  Sleep    5
+
 
 Додати документ з типом
   [Arguments]  ${username}  ${tender_uaid}  ${filepath}  ${doc_type}
@@ -758,7 +762,7 @@ set_clacifier
   Choose File       xpath=//input[@type="file"]        ${filepath}
   Sleep   5
   Click Element     xpath=//input[@name="commit"]
-  Sleep   5
+  Sleep    5
 
 Додати договір про нерозголошення
   [Arguments]  ${username}  ${tender_uaid}  ${filepath}
@@ -768,7 +772,7 @@ set_clacifier
   Choose File       xpath=//input[@type="file"]        ${filepath}
   Sleep   5
   Click Element     xpath=//input[@name="commit"]
-  Sleep   5
+  Sleep    5
 
 Завантажити документ
   [Arguments]  ${user_name}  ${filepath}  ${tender_id}=${None}
@@ -781,7 +785,7 @@ set_clacifier
   Choose File       xpath=//input[@type="file"]        ${filepath}
   Sleep  5
   Click Element     xpath=//input[@name="commit"]
-  Sleep  5
+  Sleep    5
 
 Додати Virtual Data Room
   [Arguments]  ${username}  ${tender_uaid}  ${vdr_url}  ${title}=Sample Virtual Data Room
@@ -793,7 +797,7 @@ set_clacifier
   Input Text         ${url_elements[0]}          ${vdr_url}
   Sleep    5
   Click Element     xpath=//input[@name="commit"]
-  Sleep    10
+  Sleep    5
 
 Додати публічний паспорт активу
   [Arguments]  ${user_name}  ${tender_id}  ${urlpath}
@@ -806,7 +810,7 @@ set_clacifier
   Input Text         ${url_elements[-1]}          ${urlpath}
   Sleep  5
   Click Element     xpath=//input[@name="commit"]
-  Sleep  15
+  Sleep    5
   Reload Page
 
 Додати офлайн документ
@@ -836,7 +840,7 @@ set_clacifier
   Sleep    5
   Choose File                           xpath=//input[@type="file"]        ${doc_path}
   Sleep    5
-#  Input Text                            xpath=//input[@id="cancellation_file_description"]    ${description}
+  Input Text                            xpath=//input[@id="cancellation_file_description"]    ${description}
   Sleep    5
   Click Element                         xpath=//input[@name="commit"]
   Sleep    10
@@ -1245,7 +1249,7 @@ Check if question on page by num
 Дискваліфікувати постачальника
   [Arguments]  ${username}  ${tender_id}  ${award_num}  ${description}
   ${opened}=    Run Keyword And return Status    Wait Until Element Is Visible    xpath=//span[@class="button to_modal"]    10s
-  Wait Until Page Contains Element      xpath=//div[contains(@class, "columns bid_status bid_status_contract_pending") or contains(@class, "columns bid_status bid_status_award_pending_verification") or contains(@class, "columns bid_status bid_status_award_pending_payment")]    150
+  Sleep    150
   Reload Page
   Wait Until Page Contains Element      xpath=//div[contains(@class, "columns bid_status bid_status_contract_pending") or contains(@class, "columns bid_status bid_status_award_pending_verification") or contains(@class, "columns bid_status bid_status_award_pending_payment")]    20
   Sleep    10
@@ -1257,13 +1261,17 @@ Check if question on page by num
   Input Text    id=prozorro_award_title_ua           ${description}
   Input Text    id=prozorro_award_description_ua     ${description}
   Sleep     2
+  ${add_file}=    Run Keyword And return Status    Wait Until Element Is Visible    xpath=//a[@class="button btn_white documents_add add_fields"]    30s
+  Run Keyword If     '${add_file}' != 'True'        Add disqualification file
+  Click Element  xpath=//input[@name="commit"]
+  Sleep     10
+
+Add disqualification file
   ${file_path}  ${file_name}  ${file_content}=  create_fake_doc
   Click Element    xpath=//a[@class="button btn_white documents_add add_fields"]
   Sleep  5
   Choose File      xpath=//input[@type="file"]        ${file_path}
   Sleep     2
-  Click Element  xpath=//input[@name="commit"]
-  Sleep     10
 
 Завантажити угоду до тендера
   [Arguments]  @{ARGUMENTS}
@@ -1279,10 +1287,10 @@ Check if question on page by num
   Click Element     xpath=//span[@class="button to_modal"]
   Sleep     5
   Wait Until Page Contains Element      xpath=//div[@class="contract_confirm_document"]
-  Input Text    id=prozorro_contract_contract_number     ${ARGUMENTS[2]}
-  Sleep     5
-  ${cdate} =    get_currt_date
-  Input Text    id=prozorro_contract_date_signed     ${cdate}
+#  Input Text    id=prozorro_contract_contract_number     ${ARGUMENTS[2]}
+#  Sleep     5
+#  ${cdate} =    get_currt_date
+#  Input Text    id=prozorro_contract_date_signed     ${cdate}
   Sleep     5
   Click Element    xpath=//a[@class="button btn_white documents_add add_fields"]
   Sleep  5
@@ -1290,6 +1298,16 @@ Check if question on page by num
   Sleep  5
   Click Element    xpath=//input[@name="commit"]
   Sleep  10
+
+  ${opened}=    Run Keyword And return Status    Wait Until Element Is Visible    xpath=//span[@class="button to_modal"]    30s
+  Wait Until Page Contains Element      xpath=//div[contains (@class, "columns bid_status bid_status_contract_pending")]    120
+  Run Keyword If     '${opened}' != 'True'    Click Element    xpath=//div[contains (@class, "columns bid_status bid_status_contract_pending")]
+  Sleep     2
+  ${modal_buttons}=   Get Webelements      xpath=//span[@class="button to_modal"]
+  Click Element     ${modal_buttons[-1]}
+  Sleep     2
+  Click Element     xpath=//span[@class="button"]
+
 
 Підтвердити підписання контракту
   [Arguments]  ${username}  ${tender_uaid}  ${award_num}

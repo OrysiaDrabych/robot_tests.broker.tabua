@@ -334,12 +334,8 @@ set_clacifier
   \    Sleep   2
   Sleep     3
   ${award_status_blocks} =    Get Webelements     xpath=//ul[@class="accordion bids_list"]//div[contains(@class, "bid_status")]/span
-  ${status_0}=    Get Text    ${award_status_blocks[0]}
-  ${status_1}=    Get Text    ${award_status_blocks[1]}
-  ${award_date_blocks} =    Get Webelements     xpath=//ul[@class="accordion bids_list"]//div[@class="document_date"]
-  ${award_date_0}=    Get Text    ${award_date_blocks[0]}
-  ${award_date_1}=    Get Text    ${award_date_blocks[1]}
-  ${correct_status}=    get_award_status    ${status_0}  ${status_1}  ${award_date_0}  ${award_date_1}  ${index}
+  ${status}=    Get Text    ${award_status_blocks[${index}]}
+  ${correct_status}=    get_award_status    ${status}
   [Return]    ${correct_status}
 
 ####  Client  #################
@@ -1261,8 +1257,8 @@ Check if question on page by num
   Input Text    id=prozorro_award_title_ua           ${description}
   Input Text    id=prozorro_award_description_ua     ${description}
   Sleep     2
-  ${add_file}=    Run Keyword And return Status    Wait Until Element Is Visible    xpath=//a[@class="button btn_white documents_add add_fields"]    30s
-  Run Keyword If     '${add_file}' != 'True'        Add disqualification file
+  ${add_file}=    Run Keyword And return Status    Wait Until Element Is Visible    xpath=//a[@class="button btn_white documents_add add_fields"]    10s
+  Run Keyword If     '${add_file}' == 'True'        Add disqualification file
   Click Element  xpath=//input[@name="commit"]
   Sleep     10
 

@@ -328,8 +328,9 @@ set_clacifier
   Sleep    10
   Reload Page
   Sleep     3
-  :FOR    ${i}    IN RANGE    0    2
-  \    ${award_blocks} =    Get Webelements     xpath=//ul[@class="accordion bids_list"]/li
+  ${award_blocks} =    Get Webelements     xpath=//ul[@class="accordion bids_list"]/li
+  ${award_len} =    Get Length    ${award_blocks}
+  :FOR    ${i}    IN RANGE    0    ${award_len}
   \    Click Element   ${award_blocks[${i}]}
   \    Sleep   2
   Sleep     3

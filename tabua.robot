@@ -468,19 +468,19 @@ set_clacifier
 
 Отримати інформацію про items[0].unit.name
   ${units}=     Get Webelements     xpath=//div[@class="small-1 small-offset-1 columns"]
-  ${unit_name}=     Get Text    ${units[0]}
+  ${unit_name}=     Get Text    ${units[${asset_index_0}]}
   ${unit_name}=  get_select_unit_name  ${unit_name.split(' ')[-1]}
   [Return]  ${unit_name}
 
 Отримати інформацію про items[1].unit.name
   ${units}=     Get Webelements     xpath=//div[@class="small-1 small-offset-1 columns"]
-  ${unit_name}=     Get Text    ${units[1]}
+  ${unit_name}=     Get Text    ${units[${asset_index_1}]}
   ${unit_name}=  get_select_unit_name  ${unit_name.split(' ')[-1]}
   [Return]  ${unit_name}
 
 Отримати інформацію про items[2].unit.name
   ${units}=     Get Webelements     xpath=//div[@class="small-1 small-offset-1 columns"]
-  ${unit_name}=     Get Text    ${units[2]}
+  ${unit_name}=     Get Text    ${units[${asset_index_2}]}
   ${unit_name}=  get_select_unit_name  ${unit_name.split(' ')[-1]}
   [Return]  ${unit_name}
 
@@ -494,19 +494,19 @@ set_clacifier
 
 Отримати інформацію про items[0].unit.code
   ${units}=     Get Webelements     xpath=//div[@class="small-1 small-offset-1 columns"]
-  ${unit_code}=     Get Text    ${units[0]}
+  ${unit_code}=     Get Text    ${units[${asset_index_0}]}
   ${unit_code}=  get_select_unit_code  ${unit_code.split(' ')[-1].strip()}
   [Return]  ${unit_code}
 
 Отримати інформацію про items[1].unit.code
   ${units}=     Get Webelements     xpath=//div[@class="small-1 small-offset-1 columns"]
-  ${unit_code}=     Get Text    ${units[1]}
+  ${unit_code}=     Get Text    ${units[${asset_index_1}]}
   ${unit_code}=  get_select_unit_code  ${unit_code.split(' ')[-1].strip()}
   [Return]  ${unit_code}
 
 Отримати інформацію про items[2].unit.code
   ${units}=     Get Webelements     xpath=//div[@class="small-1 small-offset-1 columns"]
-  ${unit_code}=     Get Text    ${units[2]}
+  ${unit_code}=     Get Text    ${units[${asset_index_2}]}
   ${unit_code}=  get_select_unit_code  ${unit_code.split(' ')[-1].strip()}
   [Return]  ${unit_code}
 
@@ -1135,9 +1135,12 @@ Check if question on page by num
 ######### Document Viewer ###########
 Отримати документ
   [Arguments]  ${username}  ${tender_uaid}  ${doc_id}
-  Sleep  5
-  Wait Until Page Contains Element    xpath=//div[@class="document_link"]/a[contains(text(), '${doc_id}')]     20
-  ${file_name}=   Get Text   xpath=//div[@class="document_link"]/a[contains(text(), '${doc_id}')]
+  Sleep  2
+  tabua.Пошук тендера по ідентифікатору  ${user_name}  ${tender_uaid}
+  Sleep   2
+  Click Element   xpath=//a[text()[contains(.,'Документи')]]
+  Sleep    5
+  ${file_name}=   Get Text   xpath=//a[contains(text(), '${doc_id}')]
   Sleep  5
   ${url}=   Get Element Attribute   xpath=//a[contains(text(), '${doc_id}')]@href
   download_file   ${url}  ${file_name}  ${OUTPUT_DIR}
@@ -1303,7 +1306,7 @@ Add disqualification file
   ${modal_buttons}=   Get Webelements      xpath=//span[@class="button to_modal"]
   Click Element     ${modal_buttons[-1]}
   Sleep     2
-  Click Element     xpath=//span[@class="button"]
+  Click Element     xpath=//a[@class="button"]
 
 
 Підтвердити підписання контракту

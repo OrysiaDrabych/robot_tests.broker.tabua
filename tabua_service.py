@@ -51,7 +51,7 @@ def get_select_unit_code(raw_code):
         u'пач': 'RM',
         u"люд/год": "RH",
         u'E48': u'E48',
-        u'H87': 'MTK',
+        u'MTK': 'MTK',
     }
     return unit_name_dictionary[raw_code]
 

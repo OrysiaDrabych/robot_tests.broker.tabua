@@ -1140,8 +1140,6 @@ Check if question on page by num
   Sleep   2
   Click Element   xpath=//a[text()[contains(.,'Документи')]]
   Sleep    5
-#  Wait Until Page Contains Element    xpath=//div[@class="document_link"]/a[contains(text(), '${doc_id}')]     20
-#  ${file_name}=   Get Text   xpath=//div[@class="document_link"]/a[contains(text(), '${doc_id}')]
   ${file_name}=   Get Text   xpath=//a[contains(text(), '${doc_id}')]
   Sleep  5
   ${url}=   Get Element Attribute   xpath=//a[contains(text(), '${doc_id}')]@href

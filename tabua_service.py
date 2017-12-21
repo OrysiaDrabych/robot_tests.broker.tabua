@@ -51,7 +51,7 @@ def get_select_unit_code(raw_code):
         u'пач': 'RM',
         u"люд/год": "RH",
         u'E48': u'E48',
-        u'H87': 'MTK',
+        u'MTK': 'MTK',
     }
     return unit_name_dictionary[raw_code]
 
@@ -223,6 +223,15 @@ def get_tag_field(doc_type):
 
 def check_has_value(dict):
     return 'value' in dict
+
+# def get_award_status(status_0, status_1, date_0, date_1, num):
+#     status_list = [status_0, status_1]
+#     date_list = [date_0, date_1]
+#     date_l = [datetime.datetime.strptime(x.split(': ')[1], "%d.%m.%Y %H:%M") for x in date_list]
+#     if (date_l[0] > date_l[1] and int(num)) or (date_l[0] < date_l[1] and not int(num)):
+#         return convert_nt_string_to_common_string(status_list[0])
+#     else:
+#         return convert_nt_string_to_common_string(status_list[1])
 
 def get_award_status(status):
     return convert_nt_string_to_common_string(status)

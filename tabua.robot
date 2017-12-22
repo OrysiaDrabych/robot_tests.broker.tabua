@@ -1166,7 +1166,9 @@ Check if question on page by num
   ...       ${ARGUMENTS[2]} == doc_id
   ...       ${ARGUMENTS[3]} == field
   Sleep     2
-  Run Keyword And Return If    '${ARGUMENTS[3]}' == 'title'    Get Text   xpath=//a[contains(text(), '${ARGUMENTS[2]}')]
+  Click Element   xpath=//a[text()[contains(.,'Документи')]]
+  Sleep     2
+  Run Keyword And Return If    '${ARGUMENTS[3]}' == 'title'    Get Text   xpath=//a[text()[contains(.,'${ARGUMENTS[2]}')]]
   Run Keyword And Return If    '${ARGUMENTS[3]}' == 'description'    Get Text   xpath=//div[contains(@class, "document_description")]
   [Return]
 

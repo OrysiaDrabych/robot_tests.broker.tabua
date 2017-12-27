@@ -174,12 +174,13 @@ Login
 # Selecting classifier
   \   Sleep   5
   \   ${classification_scheme_html} =    get_html_scheme    ${classification_scheme}
+  \   ${cav_tag} =   Set Variable    ajax_block classification_type_${classification_scheme_html}
   \   ${classifier_field}=      Get Webelements     xpath=//span[@data-type="${classification_scheme_html}"]
   \   Click Element     ${classifier_field[-1]}
   \   Sleep     2
   \   set_clacifier   ${classification_id}  ${classification_scheme_html}
   \   Sleep     2
-  \   ${save_button}=   Get Webelements     xpath=//span[@class='button btn_adding']
+  \   ${save_button}=   Get Webelements     xpath=//div[@class='${cav_tag}']//span[@class='button btn_adding']
   \   Click Element     ${save_button[-1]}
   \   Sleep     2
 # Add delivery address
@@ -205,6 +206,7 @@ Login
 # Save Auction - publish to CDB
   Click Element                      ${locator.publish}
   Sleep    5
+
   Wait Until Page Contains Element     xpath=//div[@class="blue_block top_border"]   60
 # Get Ids
   : FOR   ${INDEX}  IN RANGE    1   15
@@ -921,8 +923,8 @@ Check if question on page by id
   \    Exit For Loop If    "${questions_id}" in "${title}"
   ${return_value}=      Run Keyword If   '${field_name}' == 'title'
     ...     Set Variable    ${title}
-    ...     ELSE IF  '${field_name}' == 'answer'     Get Text   xpath=//div[@class='zk-question' and .//p[contains(text(), '${question_id}')]]//span[@class='qa_answer']
-    ...     ELSE    Get Text   xpath=//div[@class='zk-question' and .//p[contains(text(), '${question_id}')]]//div[contains(@class, 'qa_message_description')]
+    ...     ELSE IF  '${field_name}' == 'description'     Set Variable    ${descr}
+    ...     ELSE    Get Text   xpath=//div[@class='zk-question' and .//p[contains(text(), '${question_id}')]]//span[@class='qa_answer']
   [Return]     ${return_value}
 
 Check if question on page by num
@@ -1011,16 +1013,18 @@ Check if question on page by num
 Відповісти на запитання
   [Arguments]  ${user_name}  ${tender_id}  ${answer_data}  ${question_id}
   Check if question on page by id       ${question_id}
-  ${titles} =           Get Webelements     xpath=//ul[@class="questions_list"]/li/div[@class="question_title"]
+  ${titles} =           Get Webelements     xpath=//ul[@class="questions_list"]/li[//span[text()[contains(.,'Дати відповідь')]]]/div[@class="question_title"]
   ${answer_buttons} =   Get Webelements     xpath=//span[text()[contains(.,'Дати відповідь')]]
   ${t_size} =    Get Length    ${titles}
-  ${answ_size} =	Get Matching Xpath Count	xpath=//ul[@class="questions_list"]/li/div[@class="question_answer"]/div
+#  ${answ_size} =	Get Matching Xpath Count	xpath=//ul[@class="questions_list"]/li/div[@class="question_answer"]/div
   ${title} =	Set Variable	${EMPTY}
   : FOR    ${i}    IN RANGE    0    ${t_size}+1
   \    ${title} =	Get Text   ${titles[${i}]}
   \    Exit For Loop If    "${question_id}" in "${title}"
-  ${index}=    Evaluate    ${i} - ${answ_size}
-  Click Button    ${answer_buttons[${index}]}
+#  ${index}=    Evaluate    ${i} - ${answ_size}
+  Click Button    ${answer_buttons[${i}]}
+
+
   Wait Until Element Is Visible	   xpath=//textarea[@id='prozorro_question_answer']
   Input Text	xpath=//textarea[@id='prozorro_question_answer']	${answer_data.data.answer}
   Click Button	xpath=//input[@name="commit"]

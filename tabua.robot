@@ -243,34 +243,6 @@ set_clacifier_find
 Пошук об’єкта МП по ідентифікатору
   [Arguments]        ${user_name}    ${asset_uaid}
   Switch browser   ${BROWSER_ALIAS}
-  Пошук об’єкта МП по ідентифікатору через пошук    ${user_name}    ${asset_uaid}
-
-Пошук об’єкта МП по ідентифікатору в списку
-  [Arguments]        ${user_name}    ${asset_uaid}
-  Go To  ${BROKERS['tabua'].assetpage}
-  Sleep   3
-  ${acord_blocks}=    Get Webelements     xpath=//div[@class="auction_title accordion-title"]
-  ${acordblocks_length}=    Get Length     ${acord_blocks}
-  :FOR   ${INDEX}  IN RANGE    0    ${acordblocks_length}
-  \    Click Element   ${acord_blocks[${INDEX}]}
-  \    Sleep    2
-
-  Sleep   3
-  ${uid_blocks}=    Get Webelements     xpath=//div[contains(@class, "columns auction_ua_id")]
-  ${sv}=    Get Text    ${uid_blocks[0]}
-  ${uid_blocks_length}=    Get Length    ${uid_blocks}
-  ${asset_index}=   Set Variable    0
-  :FOR   ${INDEX}  IN RANGE    0    ${uid_blocks_length}
-  \    ${asset_index}=   Set Variable    ${INDEX}
-  \    ${asset_uid}=    Get Text    ${uid_blocks[${INDEX}]}
-  \    Exit For Loop If  '${asset_uid}' == '${asset_uaid}'
-  Sleep    3
-  ${click_blocks}=    Get Webelements     xpath=//div[@class="columns auction_more_detail"]/a[@class="button btn_white"]
-  Click Element    ${click_blocks[${asset_index}]}
-  Sleep    3
-
-Пошук об’єкта МП по ідентифікатору через пошук
-  [Arguments]        ${user_name}    ${asset_uaid}
   :FOR   ${INDEX_N}  IN RANGE    1    15
   \   Go To  ${BROKERS['tabua'].assetpage}
   \   Wait Until Page Contains Element     id=aq  15
@@ -330,7 +302,6 @@ set_clacifier_find
 Отримати інформацію про МП decisions[1].title
   ${decision_elem}=    Get Webelements   xpath=//div[@class="decision_title"]
   ${return_value}=    Get Text    ${decision_elem[0]}
-  ${return_value}=    replace_none_with_empty    ${return_value}
   [Return]    ${return_value}
 
 Отримати інформацію про МП decisions[0].decisionDate
@@ -849,46 +820,18 @@ set_clacifier_find
 Пошук лоту по ідентифікатору
     [Arguments]  ${username}  ${lot_uaid}
     Switch browser   ${BROWSER_ALIAS}
-    Пошук лоту МП по ідентифікатору через пошук    ${user_name}    ${lot_uaid}
-
-Пошук лоту МП по ідентифікатору в списку
-  [Arguments]        ${user_name}    ${lot_uaid}
-  Go To  ${BROKERS['tabua'].lotpage}
-  Sleep   3
-  ${acord_blocks}=    Get Webelements     xpath=//div[@class="auction_title accordion-title"]
-  ${acordblocks_length}=    Get Length     ${acord_blocks}
-  :FOR   ${INDEX}  IN RANGE    0    ${acordblocks_length}
-  \    Click Element   ${acord_blocks[${INDEX}]}
-  \    Sleep    2
-
-  Sleep   3
-  ${uid_blocks}=    Get Webelements     xpath=//div[contains(@class, "columns auction_ua_id")]
-  ${sv}=    Get Text    ${uid_blocks[0]}
-  ${uid_blocks_length}=    Get Length    ${uid_blocks}
-  ${lot_index}=   Set Variable    0
-  :FOR   ${INDEX}  IN RANGE    0    ${uid_blocks_length}
-  \    ${lot_index}=   Set Variable    ${INDEX}
-  \    ${lot_uid}=    Get Text    ${uid_blocks[${INDEX}]}
-  \    Exit For Loop If  '${lot_uid}' == '${lot_uaid}'
-  Sleep    3
-  ${click_blocks}=    Get Webelements     xpath=//div[@class="columns auction_more_detail"]/a[@class="button btn_white"]
-  Click Element    ${click_blocks[${lot_index}]}
-  Sleep    3
-
-Пошук лоту МП по ідентифікатору через пошук
-  [Arguments]        ${user_name}    ${lot_uaid}
-  :FOR   ${INDEX_N}  IN RANGE    1    15
-  \   Go To  ${BROKERS['tabua'].lotpage}
-  \   Wait Until Page Contains Element     id=lq  15
-  \   Input Text        id=lq   ${lot_uaid}
-  \   Sleep   3
-  \   Click Element   xpath=//div[@class="columns search_button"]
-  \   Sleep   3
-  \   ${auc_on_page}=    Run Keyword And return Status    Wait Until Element Is Visible    xpath=//div[contains(@class, "columns auction_ua_id")]    10s
-  \   Exit For Loop If    ${auc_on_page}
-  \   Sleep   5
-  \   Reload Page
-  Sleep   3
+    :FOR   ${INDEX_N}  IN RANGE    1    15
+    \   Go To  ${BROKERS['tabua'].lotpage}
+    \   Wait Until Page Contains Element     id=lq  15
+    \   Input Text        id=lq   ${lot_uaid}
+    \   Sleep   3
+    \   Click Element   xpath=//div[@class="columns search_button"]
+    \   Sleep   3
+    \   ${auc_on_page}=    Run Keyword And return Status    Wait Until Element Is Visible    xpath=//div[contains(@class, "columns auction_ua_id")]    10s
+    \   Exit For Loop If    ${auc_on_page}
+    \   Sleep   5
+    \   Reload Page
+    Sleep   3
 
 Додати умови проведення аукціону
   [Arguments]    ${username}    ${auction}    ${index}    ${lot_uaid}

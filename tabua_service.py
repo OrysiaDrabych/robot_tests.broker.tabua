@@ -9,8 +9,7 @@ def update_test_data(role_name, tender_data):
         u'метри квадратні': u'метр кв.',
         u'послуга': u'послуга'
     }
-    # if role_name == 'tender_owner':
-    #     tender_data['data']['procuringEntity']['name'] = u'ПАТ "Тест Майно"'
+
     for el in tender_data['data']['items']:
         if el['unit']['name'] in name_dict:
             el['unit']['name'] = name_dict[el['unit']['name']]
@@ -111,7 +110,6 @@ def repair_contract_period_date(c_date):
     return u'{}-{}-{}T00:00:00+02:00'.format(date_list[2], date_list[1], date_list[0])
 
 def repair_tenderperiod_enddate(date_e):
-    # return date_e.split('/')[0].strip()
     return date_e.replace(' / ', ' ').strip() + ':00.000000+03:00'
 
 def get_first_symbols(scheme, code_str, num):
@@ -127,41 +125,10 @@ def get_region_name_asset_holder(region_name):
         return u'Київ'
     return region_name.split(' ')[0]
 
-def change_dgf(dgf):
-    if 'dgf_financial_assets' in dgf:
-        dgf = 'dgfFinancialAssets'
-    elif 'dgf_insider' in dgf:
-        dgf = 'dgfInsider'
-    else:
-        dgf = 'dgfOtherAssets'
-    return dgf
-
-def get_auc_url(url_id_p):
-    return 'http://staging_sale.tab.com.ua/auctions/{}'.format(url_id_p.split('_')[-1])
-
-def get_ua_id(ua_id):
-    if u'UA-PS-' in ua_id:
-        return ua_id
-    return ''
-
 def get_ua_id_asset(ua_id):
     if u'UA-AR-' in ua_id:
         return ua_id
     return ''
-
-count = 0
-
-def get_next_description(desc1, desc2, desc3):
-    global count
-    if count == 0:
-        count +=1
-        return desc1
-    if count == 1:
-        count +=1
-        return desc2
-    if count == 2:
-        count = 0
-        return desc3
 
 def convert_nt_string_to_common_string(proc_method):
     return {
@@ -180,82 +147,11 @@ def convert_nt_string_to_common_string(proc_method):
         u"АУКЦІОН ЗА МЕТОДОМ ПОКРОКОВОГО ЗНИЖЕННЯ СТАРТОВОЇ ЦІНИ ТА ПОДАЛЬШОГО ПОДАННЯ ЦІНОВИХ ПРОПОЗИЦІЙ": u'sellout.insider',
     }.get(proc_method, proc_method)
 
-def convert_string_to_integer(_str):
-    return {
-        u"Вперше.": 1,
-        u"Вперше": 1,
-        u"Вдруге": 2,
-        u"Втрете": 3,
-        u"Втретє": 3,
-        u"Вчетверте": 4,
-        u"Впяте": 5,
-        u"Вшосте": 6,
-        u"Всьоме": 7,
-    }.get(_str, _str)
-
-def compare_two_strings(str_1, str_2):
-    return str_1 == str_2
-
 def convert_to_price(dol, cent=None):
     return float(dol.replace(u'"', '').replace(u' ', ''))
 
-def convert_tabua_string_to_common_string(string):
-    return {
-        u"грн.": u"UAH",
-        u"шт.": u"штука",
-        u"кв.м.": u"метр кв.",
-        u" з ПДВ": True,
-        u"Класифікатор:": u"CAV",
-        u'document_type_x_dgfplatformlegaldetails': u'x_dgfPlatformLegalDetails',
-        u'document_type_x_dgfpublicassetcertificate': u'x_dgfpublicassetcertificate',
-        u'document_type_x_nda': u'x_nda',
-        u'document_type_virtualdataroom': u'virtualdataroom',
-        u'document_type_tendernotice': u'tendernotice',
-        u'document_type_x_presentation': u'x_presentation',
-        u'document_type_technicalspecifications': u'technicalspecifications',
-        u"document_type_": u"None",
-        u"Очікування пропозицій": u"active.auction",
-        u"Період аукціону": u"active.auction",
-        u"Пропозиції розглянуто": u"active.awarded",
-        u"Кваліфікація": u"active.qualification",
-        u"Завершений": u"complete",
-        u"Відмінений": u"cancelled",
-        u"Аукціон": u"active.auction",
-        u"Аукціон не відбувся": u"unsuccessful",
-        u"Очікування аукціону": u"active.auction"
-    }.get(string, string)
-
-def convert_cancellations_status(cancel_reas):
-    return {
-        u"ПРИЧИНА СКАСУВАННЯ АУКЦІОНУ": u"active",
-    }.get(cancel_reas, cancel_reas)
-
 def download_file(url, file_name, output_dir):
     urllib.urlretrieve(url, ('{}/{}'.format(output_dir, file_name)))
-
-def get_currt_date():
-    i = datetime.datetime.now()
-    return i.strftime('%d.%m.%Y')
-
-def get_tag_field(doc_type):
-    doc_tags_dict = {
-        u'tenderNotice': u'tender_notice',
-        u'x_presentation': u'x_presentation',
-        u'technicalSpecifications': u'technical_specifications'
-    }
-    if doc_type in doc_tags_dict:
-        return doc_tags_dict[doc_type]
-    else:
-        return u'tender_notice'
-
-def check_has_value(dict):
-    return 'value' in dict
-
-def get_award_status(status):
-    return convert_nt_string_to_common_string(status)
-
-def get_first_string(str_wt):
-    return float(str_wt.strip().split(' ')[0])
 
 def get_decision_id(item_index, tag):
     ID_DICT = {
@@ -264,9 +160,6 @@ def get_decision_id(item_index, tag):
         'date': 'prozorro_asset_decisions_attributes_{}_date',
     }
     return ID_DICT[tag].format(item_index)
-
-def get_date_from_uid(uid):
-    return '.'.join(uid.split('-')[3:6])
 
 def reflect_status(mp_status):
     mp_status = mp_status.strip()
@@ -297,12 +190,6 @@ def convert_doc_type(doc_type):
     }
     return DOC_TYPES_DICT.get(doc_type)
 
-def split_colon(text, index):
-    result = text.split(u':')[int(index)].strip()
-    if index == 1:
-        return result.split(' ')[0]
-    return result
-
 def split_space(text, index):
     return text.split(u' ')[int(index)].strip()
 
@@ -320,16 +207,6 @@ def get_duration_period(tendering_duration):
     }
     return DURATION_DICT.get(tendering_duration)
 
-def repair_start_date_temp(date_s):
-    d_list = str(date_s).split('-')
-    return '{0}.{1}.{2}'.format(d_list[2][:2], int(d_list[1])+2, d_list[0])
-
-def repair_start_date_zero(start_date):
-    sd_list = start_date.split(".")
-    # current_date = datetime.datetime.now()
-    # return "{}-{}-{}T{}:{}:00+03:00".format(sd_list[2], sd_list[1], sd_list[0], current_date.hour, current_date.minute - 1)
-    return "{}-{}-{}T00:00:00+03:00".format(sd_list[2], sd_list[1], sd_list[0])
-
 def correct_document_type_value(document_type):
     document_type_dict = {
         'technicalSpecifications': 'technical_specifications'
@@ -345,8 +222,3 @@ def add_five_days(old_date):
     zone = old_date[-6:]
     new_date = datetime.datetime.strftime(dt_5, fs) + zone
     return new_date
-
-def replace_none_with_empty(ent_str):
-    if not ent_str:
-        return u''
-    return ent_str

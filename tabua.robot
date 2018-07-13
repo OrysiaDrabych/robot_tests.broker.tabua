@@ -213,7 +213,7 @@ Login
   ${cav_tag} =   Set Variable    ajax_block classification_type_${classification_scheme_html_1}
   ${classifier_field}=      Get Webelements     xpath=//span[@data-type="sp_codes"]
   Click Element     ${classifier_field[-1]}
-  Sleep     2
+  Sleep     5
   set_clacifier_find   ${classification_id}  ${classification_scheme_html}
   Sleep     2
   Click Element    xpath=//div[@class="ajax_block classification_type_sp_codes"]//span[@class='button btn_adding']
@@ -236,9 +236,9 @@ Login
 set_clacifier_find
   [Arguments]       ${classification_id}  ${scheme}
   Input Text    xpath=//input[@name="search_classification"]    ${classification_id}
-  Sleep   3
+  Sleep   5
   Click Element     xpath=//label[starts-with(@for, "filtered_code_")]
-  Sleep   3
+  Sleep   5
 
 Пошук об’єкта МП по ідентифікатору
   [Arguments]        ${user_name}    ${asset_uaid}

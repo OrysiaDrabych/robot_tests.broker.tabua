@@ -90,30 +90,9 @@ def get_select_unit_name(raw_name):
     }
     return unit_name_dictionary[raw_name]
 
-def convert_desc(main_desc, desc2):
-    desc = main_desc.replace(desc2, '').strip()
-    return desc
-
-def get_nonzero_num(code_str):
-    code_str = code_str.split('-')[0]
-    if code_str[0] == '0':
-        return len(code_str.strip('0')) + 2, 2
-    else:
-        return len(code_str.strip('0')) + 1, 1
-
 def repair_start_date(date_s):
     d_list = str(date_s).split('-')
     return '{0}.{1}.{2}'.format(d_list[2][:2], d_list[1], d_list[0])
-
-def repair_contract_period_date(c_date):
-    date_list = c_date.split(u': ')[1].split(u'.')
-    return u'{}-{}-{}T00:00:00+02:00'.format(date_list[2], date_list[1], date_list[0])
-
-def repair_tenderperiod_enddate(date_e):
-    return date_e.replace(' / ', ' ').strip() + ':00.000000+03:00'
-
-def get_first_symbols(scheme, code_str, num):
-    return scheme + '_' + code_str[:int(num)]
 
 def get_region_name(region_name):
     if region_name == u'місто Київ':

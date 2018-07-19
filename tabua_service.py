@@ -23,17 +23,11 @@ def update_test_data(role_name, tender_data):
 
     return tender_data
 
-def get_html_scheme1(classification_scheme):
-    if classification_scheme == 'CPV':
-        return 'cpv'
-    else:
-        return 'cav-ps'
-
 def get_html_scheme(classification_scheme):
     if classification_scheme == 'CPV':
         return 'cpv'
     else:
-        return 'cavv2'
+        return 'cav-ps'
 
 def substract(dividend, divisor):
     return int(dividend) - int(divisor)

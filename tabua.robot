@@ -208,9 +208,7 @@ Login
   Select From List By Value   ${unit_name_field[-1]}    ${unit_code}
 # Selecting classifier
   Sleep   1
-  ${classification_scheme_html_1} =    get_html_scheme_1    ${classification_scheme}
   ${classification_scheme_html} =    get_html_scheme    ${classification_scheme}
-  ${cav_tag} =   Set Variable    ajax_block classification_type_${classification_scheme_html_1}
   ${classifier_field}=      Get Webelements     xpath=//span[@data-type="sp_codes"]
   Click Element     ${classifier_field[-1]}
   Sleep     5
@@ -388,6 +386,7 @@ set_clacifier_find
 
 Отримати інформацію з активу об'єкта МП
   [Arguments]  ${username}  ${asset_uaid}  ${item_id}  ${field_name}
+  Sleep    20
   tabua.Пошук об’єкта МП по ідентифікатору    ${username}    ${tender_uaid}
   ${return_value}=   Run KeyWord   Отримати інформацію про МП items[0].${field_name}
   [Return]  ${return_value}
@@ -835,8 +834,7 @@ set_clacifier_find
 
 Додати умови проведення аукціону
   [Arguments]    ${username}    ${auction}    ${index}    ${lot_uaid}
-  tabua.Пошук лоту по ідентифікатору    ${username}    ${lot_uaid}
-  Sleep    2
+  Run Keyword If    ${index} == 0    tabua.Пошук лоту по ідентифікатору    ${username}    ${lot_uaid}
   Run KeyWord  Додати умови проведення аукціону номер ${index}    ${username}    ${lot_uaid}    ${auction}
 
 Додати умови проведення аукціону номер 0
@@ -862,21 +860,14 @@ set_clacifier_find
   Input Text  id=prozorro_lot_lot_auctions_attributes_0_bank_data_attributes_2_code  ${account_id}
   ${start_date}=    add_five_days    ${auction.auctionPeriod.startDate}
   Input Text  id=prozorro_lot_lot_auctions_attributes_0_auction_period_attributes_start_date  ${start_date}
-  Sleep    2
-  Click Element    xpath=//input[@name="publish"]
-  Sleep    120
-  Reload Page
-  Sleep    10
 
 Додати умови проведення аукціону номер 1
   [Arguments]  ${username}  ${lot_uaid}  ${auction}
-  Click Link    xpath=//a[contains(text(), "Змінити")]
-  Sleep    1
   ${duration_period}=    get_duration_period    ${auction.tenderingDuration}
   Input Text  id=prozorro_lot_lot_auctions_attributes_1_tendering_duration    ${duration_period}
-  Sleep    1
-  Click Element    xpath=//input[@name="publish"]
   Sleep    2
+  Click Element    xpath=//input[@name="publish"]
+  Sleep    60
 
 Оновити сторінку з лотом
     [Arguments]  ${username}  ${lot_uaid}

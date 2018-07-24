@@ -23,8 +23,6 @@ ${locator.delivery_town}             xpath=//input[contains(@id, "prozorro_aucti
 ${locator.delivery_address}          xpath=//input[contains(@id, "prozorro_auction_items_attributes_") and contains(@id, "_street_address")]
 ${locator.add_item}                  xpath=//a[@class="button btn_white add_auction_item add_fields"]
 
-${locator.publish}                     //input[@name="publish"]
-
 ${locator.tenderPeriod.endDate}           //span[@class="entry_submission_end_detail"]/span
 ${locator.view.minimalStep.amount}        //div[@class="blue_block"][2]//span[@class="amount"]
 
@@ -36,9 +34,10 @@ ${locator.view.items[2].description}        //div[@class="columns blue_block ite
 ${locator.view.value.amount}                //span[@class="start_value_detail"]/span[@class="amount"]
 ${locator.view.minNumberOfQualifiedBids}    //div[@class="blue_block"][3]
 
-${asset_index_0}    -1
-${asset_index_1}    1
-${asset_index_2}    0
+# Buttons
+${locator.button.publish}                 //input[@name="publish"]
+${locator.button.create_asset}            //a[contains(text(), "Створити об'єкт")]
+${locator.button.remove_from_active}     //input[@value="Виключити з переліку"]
 
 # Asset creation locators
 ${locator.asset_title}                     id=prozorro_asset_title_ua
@@ -51,30 +50,29 @@ ${locator.asset_description}               id=prozorro_asset_description_ua
 Підготувати клієнт для користувача
   [Arguments]  @{ARGUMENTS}
   [Documentation]  Відкрити браузер, створити об’єкт api wrapper, тощо
-  ...      ${ARGUMENTS[0]} ==  username
-  ${alias}=   Catenate   SEPARATOR=   role_  ${ARGUMENTS[0]}
-  Set Global Variable   ${BROWSER_ALIAS}   ${alias}
+  ...      ${ARGUMENTS[0]} == username
+  ${alias}=    Catenate    SEPARATOR=    role_    ${ARGUMENTS[0]}
+  Set Global Variable    ${BROWSER_ALIAS}    ${alias}
   Open Browser
-  ...      ${USERS.users['${ARGUMENTS[0]}'].homepage}
-  ...      ${USERS.users['${ARGUMENTS[0]}'].browser}
-  ...      alias=${BROWSER_ALIAS}
-  Set Window Size   @{USERS.users['${ARGUMENTS[0]}'].size}
-  Set Window Position   @{USERS.users['${ARGUMENTS[0]}'].position}
-  Run Keyword If   '${ARGUMENTS[0]}' != 'tabua_Viewer'   Login    ${ARGUMENTS[0]}
+  ...    ${USERS.users['${ARGUMENTS[0]}'].homepage}
+  ...    ${USERS.users['${ARGUMENTS[0]}'].browser}
+  ...    alias=${BROWSER_ALIAS}
+  Set Window Size    @{USERS.users['${ARGUMENTS[0]}'].size}
+  Set Window Position    @{USERS.users['${ARGUMENTS[0]}'].position}
+  Run Keyword If    '${ARGUMENTS[0]}' != 'tabua_Viewer'    Login    ${ARGUMENTS[0]}
 
 
 Login
   [Arguments]  @{ARGUMENTS}
   #  Logs in as Auction owner, who can create Fin auctions
-  Wait Until Page Contains Element   id=user_password   20
-  Input Text   id=user_email   ${USERS.users['${ARGUMENTS[0]}'].login}
-  Input Text   id=user_password   ${USERS.users['${ARGUMENTS[0]}'].password}
-  Click Element   //input[@type="submit"]
-  Sleep     2
-  Go To  ${BROKERS['tabua'].startpage}
-  Wait Until Page Contains Element   //span[@class="button menu_btn is_logged"]   20
-  Sleep     2
-  Log To Console   Success logging in as Some one - ${ARGUMENTS[0]}${\n}
+  Wait Until Page Contains Element    id=user_password    20
+  Input Text    id=user_email    ${USERS.users['${ARGUMENTS[0]}'].login}
+  Input Text    id=user_password    ${USERS.users['${ARGUMENTS[0]}'].password}
+  Click Element    //form[@id="new_user"]//input[@type="submit"]
+  Sleep    1
+  Go To    ${BROKERS['tabua'].startpage}
+  Wait Until Page Contains Element    //span[@class="button menu_btn is_logged"]    20
+  Log To Console    Success logging in as Some one - ${ARGUMENTS[0]}${\n}
 
 
 Оновити сторінку з тендером
@@ -100,15 +98,15 @@ Login
   [Arguments]  ${username}    ${tender_data}
   Log To Console    ${\n}${username}${\n}
   # Initialisation. Getting values from Dictionary
-  Log To Console    Start creating procedure
+  Log To Console    Start creating procedure${\n}
   ${asset_title}=         Get From Dictionary   ${tender_data.data}    title
   ${asset_description}=   Get From Dictionary   ${tender_data.data}    description
   ${asset_decisions}=     Get From Dictionary   ${tender_data.data}    decisions
   ${asset_items}=         Get From Dictionary   ${tender_data.data}    items
   ${asset_holder}=        Get From Dictionary   ${tender_data.data}    assetHolder
   Go To  ${BROKERS['tabua'].assetpage}
-  Wait Until Page Contains Element   //a[contains(text(), "Створити об'єкт")]   20
-  Click Link                         //a[contains(text(), "Створити об'єкт")]
+  Wait Until Page Contains Element   ${locator.button.create_asset}   20
+  Click Link                         ${locator.button.create_asset}
   Wait Until Page Contains Element   //input[@id="prozorro_asset_title_ua"]   20
   # Input fields tender
   Input Text   ${locator.asset_title}              ${asset_title}
@@ -138,20 +136,22 @@ Login
   \    Додати наступний обєкт активу МП    ${item}
   \    ${substracted_items_number}=   substract    ${items_number}   1
   \    Run Keyword If   '${INDEX}' < '${substracted_items_number}'   Click Element     //a[@class='button btn_white add_auction_item add_fields'][last()]
-  \    Sleep     3
+  \    Sleep     2
+  ${file_path}    ${file_title}    ${file_content}=    create_fake_doc
+    Run Keyword    Add_File_To_Form    ${file_path}
   # Add Asset Holder
   Click Element    //div[@class="same_address"]
-  Sleep    3
-  ${asset_holder_name}=        Get From Dictionary   ${asset_holder}               name
-  ${asset_holder_id}=          Get From Dictionary   ${asset_holder.identifier}    id
-  ${asset_holder_index}=       Get From Dictionary   ${asset_holder.address}       postalCode
-  ${asset_holder_region}=      Get From Dictionary   ${asset_holder.address}       region
-  ${asset_holder_locality}=    Get From Dictionary   ${asset_holder.address}       locality
-  ${asset_holder_address}=     Get From Dictionary   ${asset_holder.address}       streetAddress
-  ${asset_holder_pib}=         Get From Dictionary   ${asset_holder.contactPoint}       name
-  ${asset_holder_phone}=       Get From Dictionary   ${asset_holder.contactPoint}       telephone
-  ${asset_holder_email}=       Get From Dictionary   ${asset_holder.contactPoint}       email
-  ${asset_holder_fax}=         Get From Dictionary   ${asset_holder.contactPoint}       faxNumber
+  Sleep    1
+  ${asset_holder_name}=        Get From Dictionary    ${asset_holder}               name
+  ${asset_holder_id}=          Get From Dictionary    ${asset_holder.identifier}    id
+  ${asset_holder_index}=       Get From Dictionary    ${asset_holder.address}       postalCode
+  ${asset_holder_region}=      Get From Dictionary    ${asset_holder.address}       region
+  ${asset_holder_locality}=    Get From Dictionary    ${asset_holder.address}       locality
+  ${asset_holder_address}=     Get From Dictionary    ${asset_holder.address}       streetAddress
+  ${asset_holder_pib}=         Get From Dictionary    ${asset_holder.contactPoint}       name
+  ${asset_holder_phone}=       Get From Dictionary    ${asset_holder.contactPoint}       telephone
+  ${asset_holder_email}=       Get From Dictionary    ${asset_holder.contactPoint}       email
+  ${asset_holder_fax}=         Get From Dictionary    ${asset_holder.contactPoint}       faxNumber
   Input Text    //input[@id="prozorro_asset_holder_attributes_name_ua"]        ${asset_holder_name}
   Input Text    //input[@id="prozorro_asset_holder_attributes_code"]           ${asset_holder_id}
   Input Text    //input[@id="prozorro_asset_holder_attributes_postal_code"]    ${asset_holder_index}
@@ -164,7 +164,7 @@ Login
   Input Text    //input[@id="prozorro_asset_holder_attributes_contact_attributes_email"]        ${asset_holder_email}
   Input Text    //input[@id="prozorro_asset_holder_attributes_contact_attributes_fax_number"]   ${asset_holder_fax}
   # Save Auction - publish to CDB
-  Click Element                      ${locator.publish}
+  Click Element                      ${locator.button.publish}
   Wait Until Page Contains Element     //div[@class="blue_block top_border"]   60
   # Get Ids
   : FOR   ${INDEX}  IN RANGE    1   15
@@ -177,7 +177,7 @@ Login
   \   Sleep     10
   \   Reload Page
   Sleep    10
-  Log To Console    ${TENDER_UAID}${\n}
+  Log To Console    ${TENDER_UAID}
   [Return]  ${TENDER_UAID}
 
 Додати наступний обєкт активу МП
@@ -198,81 +198,91 @@ Login
   ${registration_details}=              Get From Dictionary         ${item}              registrationDetails
   ${registration_status}=               Get From Dictionary         ${registration_details}     status
 
-  ${item_descr_field}=   Get Webelements     //textarea[contains(@id, 'prozorro_asset_items_attributes_') and contains(@id, '_description_ua')]
-  Input Text    ${item_descr_field[-1]}     ${item_description}
-  ${item_quantity_field}=   Get Webelements     xpath=//input[contains(@id, 'prozorro_asset_items_attributes') and contains(@id, '_quantity')]
-  ${item_quantity_string}      Convert To String    ${item_quantity}
-  Input Text    ${item_quantity_field[-1]}           ${item_quantity_string}
-  ${unit_name_field}=   Get Webelements     xpath=//select[contains(@id, 'prozorro_asset_items_attributes_') and contains(@id, '_unit_code')]
-  Select From List By Value   ${unit_name_field[-1]}    ${unit_code}
+  ${item_descr_field}=    Get Webelements    //textarea[contains(@id, 'prozorro_asset_items_attributes_') and contains(@id, '_description_ua')]
+  Input Text    ${item_descr_field[-1]}    ${item_description}
+  ${item_quantity_field}=    Get Webelements    //input[contains(@id, 'prozorro_asset_items_attributes') and contains(@id, '_quantity')]
+  ${item_quantity_string}    Convert To String    ${item_quantity}
+  Input Text    ${item_quantity_field[-1]}    ${item_quantity_string}
+  ${unit_name_field}=    Get Webelements    //select[contains(@id, 'prozorro_asset_items_attributes_') and contains(@id, '_unit_code')]
+  Select From List By Value    ${unit_name_field[-1]}    ${unit_code}
   # Selecting classifier
   Sleep   1
-  ${classification_scheme_html} =    get_html_scheme    ${classification_scheme}
-  ${classifier_field}=      Get Webelements     xpath=//span[@data-type="sp_codes"]
+  ${classification_scheme_html}=    get_html_scheme    ${classification_scheme}
+  ${classifier_field}=    Get Webelements    //span[@data-type="sp_codes"]
   Click Element     ${classifier_field[-1]}
-  Sleep     3
-  set_clacifier_find   ${classification_id}  ${classification_scheme_html}
-  Sleep     2
+  Wait Until Page Contains Element    //input[@id="search_classification"]   10
+  set_clacifier_find    ${classification_id}    ${classification_scheme_html}
   Click Element    //div[@class="ajax_block classification_type_sp_codes"]//span[@class='button btn_adding']
-  Sleep     2
   # Add delivery address
-  ${delivery_zip_field}=   Get Webelements     //input[contains(@id, 'prozorro_asset_items_attributes_') and contains(@id, '_postal_code')]
-  Input Text        ${delivery_zip_field[-1]}      ${deliveryaddress_postalcode}
-  ${delivery_country_field}=   Get Webelements     xpath=//select[contains(@id, 'prozorro_asset_items_attributes_') and contains(@id, '_country_name')]
-  Select From List By Value   ${delivery_country_field[-1]}    ${deliveryaddress_countryname}
-  ${region_name}=   get_region_name   ${deliveryaddress_region}
-  ${region_name_field}=   Get Webelements     xpath=//select[contains(@id, 'prozorro_asset_items_attributes_') and contains(@id, '_region')]
-  Select From List By Value   ${region_name_field[-1]}    ${region_name}
-  ${delivery_town_field}=   Get Webelements     xpath=//input[contains(@id, 'prozorro_asset_items_attributes_') and contains(@id, '_locality')]
-  Input Text        ${delivery_town_field[-1]}     ${deliveryaddress_locality}
-  ${delivery_address_field}=   Get Webelements     xpath=//input[contains(@id, 'prozorro_asset_items_attributes_') and contains(@id, '_street_address')]
-  Input Text        ${delivery_address_field[-1]}  ${deliveryaddress_streetaddress}
-  ${registration_status_field}=   Get Webelements     xpath=//select[contains(@id, 'prozorro_asset_items_attributes_') and contains(@id, '_registration_details_attributes_status')]
-  Select From List By Value   ${registration_status_field[-1]}    ${registration_status}
+  ${delivery_zip_field}=    Get Webelements    //input[contains(@id, 'prozorro_asset_items_attributes_') and contains(@id, '_postal_code')]
+  Input Text    ${delivery_zip_field[-1]}    ${deliveryaddress_postalcode}
+  ${delivery_country_field}=    Get Webelements    //select[contains(@id, 'prozorro_asset_items_attributes_') and contains(@id, '_country_name')]
+  Select From List By Value    ${delivery_country_field[-1]}    ${deliveryaddress_countryname}
+  ${region_name}=    get_region_name    ${deliveryaddress_region}
+  ${region_name_field}=    Get Webelements    //select[contains(@id, 'prozorro_asset_items_attributes_') and contains(@id, '_region')]
+  Select From List By Value    ${region_name_field[-1]}    ${region_name}
+  ${delivery_town_field}=    Get Webelements    //input[contains(@id, 'prozorro_asset_items_attributes_') and contains(@id, '_locality')]
+  Input Text    ${delivery_town_field[-1]}    ${deliveryaddress_locality}
+  ${delivery_address_field}=    Get Webelements    //input[contains(@id, 'prozorro_asset_items_attributes_') and contains(@id, '_street_address')]
+  Input Text    ${delivery_address_field[-1]}    ${deliveryaddress_streetaddress}
+  ${registration_status_field}=    Get Webelements    //select[contains(@id, 'prozorro_asset_items_attributes_') and contains(@id, '_registration_details_attributes_status')]
+  Select From List By Value    ${registration_status_field[-1]}    ${registration_status}
 
 set_clacifier_find
-  [Arguments]       ${classification_id}  ${scheme}
+  [Arguments]  ${classification_id}  ${scheme}
   Input Text    //input[@name="search_classification"]    ${classification_id}
-  Sleep   1
-  Click Element     //label[starts-with(@for, "filtered_code_")]
+  Sleep    2
+  Click Element    //label[starts-with(@for, "filtered_code_")]
 
 Пошук об’єкта МП по ідентифікатору
-  [Arguments]        ${user_name}    ${asset_uaid}
-  Switch browser   ${BROWSER_ALIAS}
-  :FOR   ${INDEX_N}  IN RANGE    1    15
-  \   Go To  ${BROKERS['tabua'].assetpage}
-  \   Wait Until Page Contains Element     id=aq  15
-  \   Input Text        id=aq   ${asset_uaid}
+  [Arguments]  ${user_name}  ${asset_uaid}
+  Switch browser    ${BROWSER_ALIAS}
+  :FOR    ${INDEX_N}    IN RANGE    1    15
+  \   Go To    ${BROKERS['tabua'].assetpage}
+  \   Wait Until Page Contains Element    id=aq    15
+  \   Input Text    id=aq    ${asset_uaid}
   \   Click Element   //div[@class="columns search_button"]
-  \   ${auc_on_page}=    Run Keyword And return Status    Wait Until Element Is Visible    //div[contains(@class, "columns auction_ua_id")]    10s
+  \   ${auc_on_page}=    Run Keyword And return Status    Wait Until Element Is Visible    //div[contains(@class, "_ua_id")]    10
   \   Exit For Loop If    ${auc_on_page}
   \   Reload Page
 
+Це детальна сторінка?
+  [Arguments]  ${page_type}
+  ${is_detail_page}=    Run Keyword And Return Status    Page Should Contain Element    //div[contains(@class, 'prozorro-${page_type}s prozorro-${page_type}s-show')]
+  [Return]    ${is_detail_page}
+
+ID співпадає?
+  [Arguments]  ${object_id}
+  ${ua_id_present}=    Run Keyword And Return Status    Page Should Contain Element    //div[contains(@class, '_ua_id')]
+  ${current_id}=    Run Keyword If    ${ua_id_present}    Get Text    //div[contains(@class, '_ua_id')]
+  ${id_is_equal}=    Run Keyword And Return Status    Element Should Equal    '${current_id}' == '${object_id}'
+  [Return]    ${id_is_equal}
+
 Отримати інформацію із об'єкта МП
-  [Arguments]     ${username}    ${tender_uaid}     ${field_name}
+  [Arguments]  ${username}  ${tender_uaid}  ${field_name}
   Run Keyword If    '${username}' == 'tabua_Viewer'    Sleep    30
   tabua.Пошук об’єкта МП по ідентифікатору    ${username}    ${tender_uaid}
-  Run Keyword And Return  Отримати інформацію про МП ${field_name}
+  Run Keyword And Return    Отримати інформацію про МП ${field_name}
 
 Отримати інформацію про МП assetID
   ${return_value}=    Get Text    //div[@class="small-6 columns auction_ua_id"]
-  [Return]    ${return_value}
+  [Return]  ${return_value}
 
 Отримати інформацію про МП date
   ${uid}=    Get Text    //div[@class="small-6 columns auction_ua_id"]
   ${return_value}=    Get Element Attribute    //span[@class="entry_submission_start_detail"]@data-tender-start
-  [Return]    ${return_value}
+  [Return]  ${return_value}
 
 Отримати інформацію про МП rectificationPeriod.endDate
   ${return_value}=    Get Element Attribute    //span[@class="entry_submission_end_detail"]@data-enquiry_date
-  [Return]    ${return_value}
+  [Return]  ${return_value}
 
 Отримати інформацію про МП status
   ${status_elements} =    Get Webelements    //div[contains(@class, "small-4 columns auction_header_status status_")]/div
   ${status_elements_length}=    Get Length    ${status_elements}
   ${status}=    Run Keyword If  ${status_elements_length} == 1
-  ...           Get Text    ${status_elements[0]}
-  ...           ELSE    Get Text    ${status_elements[1]}
+  ...    Get Text    ${status_elements[0]}
+  ...    ELSE    Get Text    ${status_elements[1]}
   ${status}=    Convert To String    ${status}
   ${return_value}=    reflect_status    ${status}
   [Return]  ${return_value}
@@ -390,7 +400,7 @@ set_clacifier_find
 
 Отримати інформацію про МП items.classification.scheme
   [Arguments]  ${item_id}
-  ${classification_scheme}=    Get Element Attribute   //li[contains(@data-item_title, "${item_id}")]//div[@class="item_classificator"]@data-classification_scheme
+  ${classification_scheme}=    Get Element Attribute    //li[contains(@data-item_title, "${item_id}")]//div[@class="item_classificator"]@data-classification_scheme
   [Return]  ${classification_scheme}
 
 Отримати інформацію про МП items.classification.id
@@ -414,12 +424,12 @@ set_clacifier_find
 
 Отримати інформацію про МП items.registrationDetails.status
   [Arguments]  ${item_id}
-  ${status}=    Get Text   //li[contains(@data-item_title, "${item_id}")]//span[@class="item_registration_status"]
+  ${status}=    Get Text    //li[contains(@data-item_title, "${item_id}")]//span[@class="item_registration_status"]
   ${return_value}=    convert_item_status    ${status}
   [Return]  ${return_value}
 
 Отримати інформацію про МП dateModified
-  ${return_value}=   Get Element Attribute   //div[@class="enquiry_until_date"]@data-last_editing_date
+  ${return_value}=    Get Element Attribute    //div[@class="enquiry_until_date"]@data-last_editing_date
   [Return]  ${return_value}
 
 Отримати інформацію про МП lotID
@@ -637,13 +647,13 @@ set_clacifier_find
   [Arguments]  ${username}  ${tender_uaid}  ${filepath}
   ${at_auc_page}=    Run Keyword And return Status    Wait Until Element Is Visible	//a[text()[contains(.,'Змінити')]]	10
   Run Keyword If    ${at_auc_page}    Click Element    //a[text()[contains(.,'Змінити')]]
-  Wait Until Element Is Visible	    //div[text()[contains(.,"Редагування об’єкта")]]    10
-  ${add_doc_button}=   Get Webelements     //a[@class="button btn_white documents_add add_fields"]
-  Click Element       ${add_doc_button[-1]}
-  Choose File       //input[@type="file"]        ${file_path}
-  Sleep   3
-  Click Element     //input[@name="publish"]
-  Sleep   10
+  Wait Until Element Is Visible    //div[text()[contains(.,"Редагування об’єкта")]]    10
+  ${add_doc_button}=    Get Webelements    //a[@class="button btn_white documents_add add_fields"]
+  Click Element    ${add_doc_button[-1]}
+  Choose File    //input[@type="file"]    ${file_path}
+  Sleep    3
+  Click Element    ${locator.button.publish}
+  Sleep    10
 
 Завантажити документ в об'єкт МП з типом
   [Arguments]  ${username}  ${tender_uaid}  ${filepath}  ${doc_type}
@@ -655,7 +665,7 @@ set_clacifier_find
   Click Element    ${add_doc_button[-2]}
   Choose File    //input[@type="file"]    ${file_path}
   Sleep    3
-  Click Element    //input[@name="publish"]
+  Click Element    ${locator.button.publish}
   Sleep    20
 
 ################################
@@ -676,8 +686,8 @@ set_clacifier_find
   [Arguments]  ${field}	 ${value}
   ${avail_change}=    Run Keyword And return Status    Wait Until Element Is Visible	//div[text()[contains(.,"Редагування об’єкта")]]	10
   Run Keyword    Змінити МП ${field}    ${value}
-  Click Element     //input[@name="publish"]
-  Sleep  15
+  Click Element     ${locator.button.publish}
+  Sleep    15
 
 Змінити МП title
   [Arguments]  ${value}
@@ -691,10 +701,10 @@ set_clacifier_find
   [Arguments]  ${username}  ${item_id}  ${asset_uaid}  ${field}  ${value}
   tabua.Пошук об’єкта МП по ідентифікатору    ${username}    ${asset_uaid}
   ${at_auc_page}=    Run Keyword And return Status    Wait Until Element Is Visible    //div[text()[contains(.,"Редагування об’єкта")]]    10
-  Click Element   //a[text()[contains(.,'Змінити')]]
+  Click Element    //a[text()[contains(.,'Змінити')]]
   Wait Until Element Is Visible    //div[text()[contains(.,"Редагування об’єкта")]]    10
-  Run KeyWord  Внести зміни в актив об'єкта МП поле ${field}    ${value}    ${item_id}
-  Click Element     //input[@name="publish"]
+  Run KeyWord    Внести зміни в актив об'єкта МП поле ${field}    ${value}    ${item_id}
+  Click Element     ${locator.button.publish}
   Sleep    15
 
 Внести зміни в актив об'єкта МП поле quantity
@@ -727,35 +737,26 @@ set_clacifier_find
   Click Element    //a[@class='button btn_white add_auction_item add_fields'][last()]
   Sleep    2
   Додати наступний обєкт активу МП    ${item}
-  Click Element    //input[@name="publish"]
+  Click Element    ${locator.button.publish}
   Sleep    20
 
 Завантажити документ для видалення об'єкта МП
   [Arguments]  ${username}  ${asset_uaid}  ${file_path}
   tabua.Пошук об’єкта МП по ідентифікатору    ${username}    ${asset_uaid}
   Click Element    //div[@class="button warning asset_cancel"]
-  Wait Until Element Is Visible    //input[@value="Виключити з переліку"]    10
-  Click Element    //a[@class="button btn_white documents_add add_fields"]
-  Choose File    //input[@type="file"]    ${file_path}
-  Sleep    3
-  Click Element    //input[@value="Виключити з переліку"]
-  Sleep    30
-  tabua.Пошук об’єкта МП по ідентифікатору    ${username}    ${asset_uaid}
+  Wait Until Element Is Visible    ${locator.button.remove_from_active}    5
+  Run Keyword    Add_File_To_Form    ${file_path}
+  Click Element    ${locator.button.remove_from_active}
+  Sleep    5
 
 Видалити об'єкт МП
   [Arguments]  ${username}  ${asset_uaid}
-  tabua.Пошук об’єкта МП по ідентифікатору    ${username}    ${asset_uaid}
-  Click Element    //div[@class="documents_tab tabs-title"]/a
-  Sleep    2
-  ${cancel_details}=   Get Text   //div[contains(text(), 'Підстава для скасування')]
-  Click Element    //div[@class="main_tab tabs-title"]/a
-  Sleep    2
   tabua.Пошук об’єкта МП по ідентифікатору    ${username}    ${asset_uaid}
 
 ################# LOT #################
 
 Створити лот
-  [Arguments]    ${username}  ${tender_data}  ${asset_uaid}
+  [Arguments]  ${username}  ${tender_data}  ${asset_uaid}
   tabua.Пошук об’єкта МП по ідентифікатору    ${username}    ${asset_uaid}
   Click Element    //div[@class="auction_buttons"]/a
   Wait Until Page Contains Element   id=new_prozorro_lot_   20
@@ -763,10 +764,10 @@ set_clacifier_find
   Input Text    //input[contains(@id, "prozorro_lot_decisions_attributes_") and contains(@id, "_title_ua")]     ${tender_data.data.lotType}
   Input Text    //input[contains(@id, "prozorro_lot_decisions_attributes_") and contains(@id, "_decision_id")]      ${tender_data.data.decisions[0].decisionID}
   Input Text    //input[contains(@id, "prozorro_lot_decisions_attributes_") and contains(@id, "_date")]      ${repair_date}
-  Click Element    //input[@name="publish"]
+  Click Element    ${locator.button.publish}
   Sleep    5
-  Wait Until Page Contains Element     //div[@class="blue_block top_border"]   60
-  ${LOT_UAID}=   Get Text    //div[@class="blue_block top_border"]/div/div[@class="small-6 columns auction_ua_id"]
+  Wait Until Page Contains Element    //div[@class="blue_block top_border"]   60
+  ${LOT_UAID}=    Get Text    //div[@class="blue_block top_border"]/div/div[@class="small-6 columns auction_ua_id"]
   [Return]  ${LOT_UAID}
 
 Пошук лоту по ідентифікатору
@@ -783,39 +784,39 @@ set_clacifier_find
   \   Reload Page
 
 Додати умови проведення аукціону
-  [Arguments]    ${username}    ${auction}    ${index}    ${lot_uaid}
+  [Arguments]  ${username}  ${auction}  ${index}  ${lot_uaid}
   Run Keyword If    ${index} == 0    tabua.Пошук лоту по ідентифікатору    ${username}    ${lot_uaid}
   Run KeyWord  Додати умови проведення аукціону номер ${index}    ${username}    ${lot_uaid}    ${auction}
 
 Додати умови проведення аукціону номер 0
-  [Arguments]    ${username}    ${lot_uaid}   ${auction}
+  [Arguments]  ${username}  ${lot_uaid}  ${auction}
   Click Link    //a[contains(text(), "Уточнити та активувати")]
   ${start_price}=    Convert To String    ${auction.value.amount}
   Input Text    id=prozorro_lot_lot_auctions_attributes_0_value_attributes_amount    ${start_price}
-  ${value_valueaddedtaxincluded}=  Convert To String  ${auction.value.valueAddedTaxIncluded}
+  ${value_valueaddedtaxincluded}=    Convert To String    ${auction.value.valueAddedTaxIncluded}
   ${guarantee_amount}=    Convert To String    ${auction.guarantee.amount}
   Input Text    id=prozorro_lot_lot_auctions_attributes_0_guarantee_attributes_amount    ${guarantee_amount}
-  ${registrationFee}=  Convert To String  ${auction.registrationFee.amount}
-  ${minimalStep}=  Convert To String  ${auction.minimalStep.amount}
-  Input Text  id=prozorro_lot_lot_auctions_attributes_0_minimal_step_attributes_amount  ${minimalStep}
+  ${registrationFee}=    Convert To String    ${auction.registrationFee.amount}
+  ${minimalStep}=    Convert To String    ${auction.minimalStep.amount}
+  Input Text    id=prozorro_lot_lot_auctions_attributes_0_minimal_step_attributes_amount    ${minimalStep}
   ${treasure_account}=    Convert To String    ${auction.bankAccount.description}
-  Input Text  id=prozorro_lot_lot_auctions_attributes_0_bank_description  ${treasure_account}
+  Input Text    id=prozorro_lot_lot_auctions_attributes_0_bank_description    ${treasure_account}
   ${bank_name}=    Convert To String    ${auction.bankAccount.bankName}
-  Input Text  id=prozorro_lot_lot_auctions_attributes_0_bank_name  ${bank_name}
+  Input Text    id=prozorro_lot_lot_auctions_attributes_0_bank_name    ${bank_name}
   ${bank_edrpou}=    Set Variable    00032129
-  Input Text  id=prozorro_lot_lot_auctions_attributes_0_bank_data_attributes_0_code  ${bank_edrpou}
+  Input Text    id=prozorro_lot_lot_auctions_attributes_0_bank_data_attributes_0_code    ${bank_edrpou}
   ${bank_mfo}=    Set Variable    300465
-  Input Text  id=prozorro_lot_lot_auctions_attributes_0_bank_data_attributes_1_code  ${bank_mfo}
+  Input Text    id=prozorro_lot_lot_auctions_attributes_0_bank_data_attributes_1_code    ${bank_mfo}
   ${account_id}=    Set Variable    6944936700
-  Input Text  id=prozorro_lot_lot_auctions_attributes_0_bank_data_attributes_2_code  ${account_id}
+  Input Text    id=prozorro_lot_lot_auctions_attributes_0_bank_data_attributes_2_code    ${account_id}
   ${start_date}=    add_five_days    ${auction.auctionPeriod.startDate}
-  Input Text  id=prozorro_lot_lot_auctions_attributes_0_auction_period_attributes_start_date  ${start_date}
+  Input Text    id=prozorro_lot_lot_auctions_attributes_0_auction_period_attributes_start_date    ${start_date}
 
 Додати умови проведення аукціону номер 1
   [Arguments]  ${username}  ${lot_uaid}  ${auction}
   ${duration_period}=    get_duration_period    ${auction.tenderingDuration}
   Input Text    id=prozorro_lot_lot_auctions_attributes_1_tendering_duration    ${duration_period}
-  Click Element    //input[@name="publish"]
+  Click Element    ${locator.button.publish}
   Sleep    5
 
 Оновити сторінку з лотом
@@ -845,10 +846,10 @@ set_clacifier_find
   Click Element    //a[text()[contains(.,'Змінити')]]
   Wait Until Element Is Visible    //div[text()[contains(.,'Редагування інформаційного повідомлення')]]    10
   ${add_doc_button}=    Get Webelements    //a[@class="button btn_white documents_add add_fields"]
-  Click Element       ${add_doc_button[-1]}
+  Click Element    ${add_doc_button[-1]}
   Choose File    //input[@type="file"]    ${filepath}
   Sleep    1
-  Click Element    //input[@name="publish"]
+  Click Element    ${locator.button.publish}
   Sleep    10
 
 Завантажити документ в лот з типом
@@ -865,7 +866,7 @@ set_clacifier_find
   ${document_type_value}=    correct_document_type_value    ${document_type}
   Select From List By Value    ${document_type_field[-1]}    ${document_type_value}
   Sleep    2
-  Click Element    //input[@name="publish"]
+  Click Element    ${locator.button.publish}
   Sleep    20
 
 Завантажити документ в умови проведення аукціону
@@ -882,31 +883,31 @@ set_clacifier_find
   ${document_type_value}=    correct_document_type_value    ${document_type}
   Select From List By Value    ${document_type_field[-1]}    ${document_type_value}
   Sleep    2
-  Click Element    //input[@name="publish"]
+  Click Element    ${locator.button.publish}
   Sleep    20
 
 Внести зміни в лот
   [Arguments]  ${username}  ${lot_uaid}  ${fieldname}  ${fieldvalue}
   Click Link    //a[contains(text(), "Змінити")]
   Sleep    1
-  Run KeyWord  Внести зміни в лот поле ${fieldname}  ${fieldvalue}
-  Click Element    //input[@name="publish"]
+  Run KeyWord    Внести зміни в лот поле ${fieldname}    ${fieldvalue}
+  Click Element    ${locator.button.publish}
   Sleep    5
 
 Внести зміни в лот поле title
   [Arguments]  ${fieldvalue}
-  Input Text    //input[@id="prozorro_lot_title_ua"]     ${fieldvalue}
+  Input Text    //input[@id="prozorro_lot_title_ua"]    ${fieldvalue}
 
 Внести зміни в лот поле description
   [Arguments]  ${fieldvalue}
-  Input Text    //textarea[@id="prozorro_lot_description_ua"]     ${fieldvalue}
+  Input Text    //textarea[@id="prozorro_lot_description_ua"]    ${fieldvalue}
 
 Внести зміни в актив лоту
   [Arguments]  ${username}  ${item_id}  ${lot_uaid}  ${fieldname}  ${fieldvalue}
   Click Link    //a[contains(text(), "Змінити")]
   Sleep    1
-  Run KeyWord  Внести зміни в актив лоту поле ${fieldname}    ${fieldvalue}    ${item_id}
-  Click Element    //input[@name="publish"]
+  Run KeyWord    Внести зміни в актив лоту поле ${fieldname}    ${fieldvalue}    ${item_id}
+  Click Element    ${locator.button.publish}
   Sleep    5
 
 Внести зміни в актив лоту поле quantity
@@ -918,46 +919,44 @@ set_clacifier_find
   [Arguments]  ${username}  ${lot_uaid}  ${fieldname}  ${fieldvalue}  ${auc_num}
   Click Link    //a[contains(text(), "Змінити")]
   Sleep    1
-  Run KeyWord  Внести зміни в умови проведення аукціону поле ${fieldname}  ${fieldvalue}
-  Click Element    //input[@name="publish"]
+  Run KeyWord    Внести зміни в умови проведення аукціону поле ${fieldname}    ${fieldvalue}
+  Click Element    ${locator.button.publish}
   Sleep    5
 
 Внести зміни в умови проведення аукціону поле value.amount
   [Arguments]  ${fieldvalue}
   ${fieldvalue}=    Convert To String    ${fieldvalue}
-  Input Text    //input[@id="prozorro_lot_lot_auctions_attributes_0_value_attributes_amount"]     ${fieldvalue}
+  Input Text    //input[@id="prozorro_lot_lot_auctions_attributes_0_value_attributes_amount"]    ${fieldvalue}
 
 Внести зміни в умови проведення аукціону поле minimalStep.amount
   [Arguments]  ${fieldvalue}
   ${fieldvalue}=    Convert To String    ${fieldvalue}
-  Input Text    //input[@id="prozorro_lot_lot_auctions_attributes_0_minimal_step_attributes_amount"]     ${fieldvalue}
+  Input Text    //input[@id="prozorro_lot_lot_auctions_attributes_0_minimal_step_attributes_amount"]    ${fieldvalue}
 
 Внести зміни в умови проведення аукціону поле guarantee.amount
   [Arguments]  ${fieldvalue}
   ${fieldvalue}=    Convert To String    ${fieldvalue}
-  Input Text    //input[@id="prozorro_lot_lot_auctions_attributes_0_guarantee_attributes_amount"]     ${fieldvalue}
+  Input Text    //input[@id="prozorro_lot_lot_auctions_attributes_0_guarantee_attributes_amount"]    ${fieldvalue}
 
 Внести зміни в умови проведення аукціону поле registrationFee.amount
   [Arguments]  ${fieldvalue}
   ${fieldvalue}=    Convert To String    ${fieldvalue}
-  Input Text    //input[@id="prozorro_lot_lot_auctions_attributes_0_fee_attributes_amount"]     ${fieldvalue}
+  Input Text    //input[@id="prozorro_lot_lot_auctions_attributes_0_fee_attributes_amount"]    ${fieldvalue}
 
 Внести зміни в умови проведення аукціону поле auctionPeriod.startDate
   [Arguments]  ${fieldvalue}
-  Input Text    //input[@id="prozorro_lot_lot_auctions_attributes_0_auction_period_attributes_start_date"]     ${fieldvalue}
+  Input Text    //input[@id="prozorro_lot_lot_auctions_attributes_0_auction_period_attributes_start_date"]    ${fieldvalue}
 
 ######################### DELETE LOT ######################
 Завантажити документ для видалення лоту
   [Arguments]  ${username}  ${lot_uaid}  ${filepath}
   tabua.Пошук лоту по ідентифікатору    ${username}    ${lot_uaid}
-  Click Element     //div[@class="button warning asset_cancel"]
-  Sleep   1
-  Wait Until Element Is Visible    //input[@value="Виключити з переліку"]    10
-  Click Element       //a[@class="button btn_white documents_add add_fields"]
-  Choose File       //input[@type="file"]        ${file_path}
-  Sleep   3
-  Click Element     //input[@value="Виключити з переліку"]
-  Sleep   15
+  Click Element    //div[@class="button warning asset_cancel"]
+  Sleep    1
+  Wait Until Element Is Visible    ${locator.button.remove_from_active}    10
+  Run Keyword    Add_File_To_Form    ${file_path}
+  Click Element    ${locator.button.remove_from_active}
+  Sleep    15
   tabua.Пошук лоту по ідентифікатору    ${username}    ${lot_uaid}
 
 Видалити лот
@@ -970,3 +969,14 @@ set_clacifier_find
   Click Element    //div[@class="main_tab tabs-title"]/a
   Sleep    1
   tabua.Пошук лоту по ідентифікатору    ${username}    ${lot_uaid}
+
+
+############### Helper Methods ###############
+
+Add_File_To_Form
+  [Arguments]  ${filepath}  ${file_button_index}=0
+  ${file_buttons}=    Get Webelements    //a[@class="button btn_white documents_add add_fields"]
+  Click Element    ${file_buttons[${file_button_index}]}
+  Sleep    1
+  Choose File    //input[@type="file"]    ${file_path}
+  Sleep    2

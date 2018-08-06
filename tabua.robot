@@ -37,7 +37,9 @@ ${locator.view.minNumberOfQualifiedBids}    //div[@class="blue_block"][3]
 # Buttons
 ${locator.button.publish}                 //input[@name="publish"]
 ${locator.button.create_asset}            //a[contains(text(), "Створити об'єкт")]
-${locator.button.remove_from_active}     //input[@value="Виключити з переліку"]
+${locator.button.remove_from_active}      //input[@value="Виключити з переліку"]
+${locator.button.documents_tab}           //div[@class="documents_tab tabs-title"]/a
+${locator.button.add_item}                //a[contains(@class, 'add_auction_item')]
 
 # Asset creation locators
 ${locator.asset_title}                     id=prozorro_asset_title_ua
@@ -71,7 +73,7 @@ Login
   Click Element    //form[@id="new_user"]//input[@type="submit"]
   Sleep    1
   Go To    ${BROKERS['tabua'].startpage}
-  Wait Until Page Contains Element    //span[@class="button menu_btn is_logged"]    20
+  Wait Until Page Contains Element    //span[@class="button menu_btn is_logged"]    5
   Log To Console    Success logging in as Some one - ${ARGUMENTS[0]}${\n}
 
 
@@ -89,114 +91,114 @@ Login
 ############# Small privatization #########
 
 Оновити сторінку з об'єктом МП
-  [Arguments]    ${user_name}    ${tender_uaid}
+  [Arguments]  ${user_name}  ${tender_uaid}
   Switch Browser	${BROWSER_ALIAS}
   Reload Page
   Sleep    3
 
 Створити об'єкт МП
-  [Arguments]  ${username}    ${tender_data}
+  [Arguments]  ${username}  ${tender_data}
   Log To Console    ${\n}${username}${\n}
   # Initialisation. Getting values from Dictionary
   Log To Console    Start creating procedure${\n}
-  ${asset_title}=         Get From Dictionary   ${tender_data.data}    title
-  ${asset_description}=   Get From Dictionary   ${tender_data.data}    description
-  ${asset_decisions}=     Get From Dictionary   ${tender_data.data}    decisions
-  ${asset_items}=         Get From Dictionary   ${tender_data.data}    items
-  ${asset_holder}=        Get From Dictionary   ${tender_data.data}    assetHolder
-  Go To  ${BROKERS['tabua'].assetpage}
-  Wait Until Page Contains Element   ${locator.button.create_asset}   20
-  Click Link                         ${locator.button.create_asset}
-  Wait Until Page Contains Element   //input[@id="prozorro_asset_title_ua"]   20
+  ${asset_title}=          Get From Dictionary    ${tender_data.data}    title
+  ${asset_description}=    Get From Dictionary    ${tender_data.data}    description
+  ${asset_decisions}=      Get From Dictionary    ${tender_data.data}    decisions
+  ${asset_items}=          Get From Dictionary    ${tender_data.data}    items
+  ${asset_holder}=         Get From Dictionary    ${tender_data.data}    assetHolder
+  Go To    ${BROKERS['tabua'].assetpage}
+  Wait Until Page Contains Element    ${locator.button.create_asset}    20
+  Click Link    ${locator.button.create_asset}
+  Wait Until Page Contains Element    //input[@id="prozorro_asset_title_ua"]    20
   # Input fields tender
-  Input Text   ${locator.asset_title}              ${asset_title}
-  Input Text   ${locator.asset_description}        ${asset_description}
+  Input Text    ${locator.asset_title}          ${asset_title}
+  Input Text    ${locator.asset_description}    ${asset_description}
+
   # ======= Loop Input Decisions =======
-  ${decisions_number}=   Get Length       ${asset_decisions}
-  : FOR   ${INDEX}  IN RANGE    0    ${decisions_number}
+  ${decisions_number}=    Get Length    ${asset_decisions}
+  : FOR  ${INDEX}  IN RANGE    0    ${decisions_number}
   \    ${item}=    Get From List    ${asset_decisions}    ${INDEX}
   \    ${tile_id}=    get_decision_id   ${INDEX}    title
-  \    ${title}=    Get From Dictionary         ${item}     title
-  \    Input Text   //input[@id='${tile_id}']    ${title}
+  \    ${title}=    Get From Dictionary    ${item}    title
+  \    Input Text    //input[@id='${tile_id}']    ${title}
   \    ${id_id}=    get_decision_id   ${INDEX}    id
-  \    ${id}=    Get From Dictionary         ${item}     decisionID
-  \    Input Text   //input[@id='${id_id}']    ${id}
-  \    ${date_id}=    get_decision_id   ${INDEX}    date
-  \    ${date}=    Get From Dictionary         ${item}     decisionDate
+  \    ${id}=    Get From Dictionary    ${item}    decisionID
+  \    Input Text    //input[@id='${id_id}']    ${id}
+  \    ${date_id}=    get_decision_id    ${INDEX}    date
+  \    ${date}=    Get From Dictionary    ${item}    decisionDate
   \    ${repair_date}=    repair_start_date    ${date}
-  \    Input Text   //input[@id='${date_id}']    ${repair_date}
-  \    ${substracted_decisions_number}=   substract    ${decisions_number}   1
-  \    Run Keyword If   ${INDEX} < ${substracted_decisions_number}   Click Element     //a[@class='button btn_white add_auction_item add_fields']
-  \    Sleep    2
+  \    Input Text    //input[@id='${date_id}']    ${repair_date}
+  \    ${substracted_decisions_number}=    substract    ${decisions_number}    1
+  \    Run Keyword If    ${INDEX} < ${substracted_decisions_number}    Click Element    ${locator.button.add_item}
+  \    Sleep    1
 
   # === Loop Try to select items info ===
-  ${items_number}=   Get Length       ${asset_items}
-  : FOR   ${INDEX}  IN RANGE    0    ${items_number}
+  ${items_number}=    Get Length    ${asset_items}
+  : FOR  ${INDEX}  IN RANGE    0    ${items_number}
   \    ${item}=    Get From List    ${asset_items}    ${INDEX}
   \    Додати наступний обєкт активу МП    ${item}
-  \    ${substracted_items_number}=   substract    ${items_number}   1
-  \    Run Keyword If   '${INDEX}' < '${substracted_items_number}'   Click Element     //a[@class='button btn_white add_auction_item add_fields'][last()]
-  \    Sleep     2
-  ${file_path}    ${file_title}    ${file_content}=    create_fake_doc
-    Run Keyword    Add_File_To_Form    ${file_path}
+  \    ${substracted_items_number}=    substract    ${items_number}    1
+  \    Run Keyword If    '${INDEX}' < '${substracted_items_number}'    Click Element    ${locator.button.add_item}[last()]
+  \    Sleep    1
   # Add Asset Holder
   Click Element    //div[@class="same_address"]
   Sleep    1
-  ${asset_holder_name}=        Get From Dictionary    ${asset_holder}               name
-  ${asset_holder_id}=          Get From Dictionary    ${asset_holder.identifier}    id
-  ${asset_holder_index}=       Get From Dictionary    ${asset_holder.address}       postalCode
-  ${asset_holder_region}=      Get From Dictionary    ${asset_holder.address}       region
-  ${asset_holder_locality}=    Get From Dictionary    ${asset_holder.address}       locality
-  ${asset_holder_address}=     Get From Dictionary    ${asset_holder.address}       streetAddress
-  ${asset_holder_pib}=         Get From Dictionary    ${asset_holder.contactPoint}       name
-  ${asset_holder_phone}=       Get From Dictionary    ${asset_holder.contactPoint}       telephone
-  ${asset_holder_email}=       Get From Dictionary    ${asset_holder.contactPoint}       email
-  ${asset_holder_fax}=         Get From Dictionary    ${asset_holder.contactPoint}       faxNumber
+  ${asset_holder_name}=        Get From Dictionary    ${asset_holder}                 name
+  ${asset_holder_id}=          Get From Dictionary    ${asset_holder.identifier}      id
+  ${asset_holder_index}=       Get From Dictionary    ${asset_holder.address}         postalCode
+  ${asset_holder_region}=      Get From Dictionary    ${asset_holder.address}         region
+  ${asset_holder_locality}=    Get From Dictionary    ${asset_holder.address}         locality
+  ${asset_holder_address}=     Get From Dictionary    ${asset_holder.address}         streetAddress
+  ${asset_holder_pib}=         Get From Dictionary    ${asset_holder.contactPoint}    name
+  ${asset_holder_phone}=       Get From Dictionary    ${asset_holder.contactPoint}    telephone
+  ${asset_holder_email}=       Get From Dictionary    ${asset_holder.contactPoint}    email
+  ${asset_holder_fax}=         Get From Dictionary    ${asset_holder.contactPoint}    faxNumber
   Input Text    //input[@id="prozorro_asset_holder_attributes_name_ua"]        ${asset_holder_name}
   Input Text    //input[@id="prozorro_asset_holder_attributes_code"]           ${asset_holder_id}
   Input Text    //input[@id="prozorro_asset_holder_attributes_postal_code"]    ${asset_holder_index}
-  ${ah_region_name}=   get_region_name_asset_holder   ${asset_holder_region}
-  Select From List By Value   //select[@id="prozorro_asset_holder_attributes_region"]    ${ah_region_name}
+  ${ah_region_name}=    get_region_name_asset_holder    ${asset_holder_region}
+  Select From List By Value    //select[@id="prozorro_asset_holder_attributes_region"]    ${ah_region_name}
   Input Text    //input[@id="prozorro_asset_holder_attributes_locality"]          ${asset_holder_locality}
   Input Text    //input[@id="prozorro_asset_holder_attributes_street_address"]    ${asset_holder_address}
-  Input Text    //input[@id="prozorro_asset_holder_attributes_contact_attributes_name_ua"]      ${asset_holder_pib}
-  Input Text    //input[@id="prozorro_asset_holder_attributes_contact_attributes_telephone"]    ${asset_holder_phone}
-  Input Text    //input[@id="prozorro_asset_holder_attributes_contact_attributes_email"]        ${asset_holder_email}
-  Input Text    //input[@id="prozorro_asset_holder_attributes_contact_attributes_fax_number"]   ${asset_holder_fax}
+  Input Text    //input[@id="prozorro_asset_holder_attributes_contact_attributes_name_ua"]       ${asset_holder_pib}
+  Input Text    //input[@id="prozorro_asset_holder_attributes_contact_attributes_telephone"]     ${asset_holder_phone}
+  Input Text    //input[@id="prozorro_asset_holder_attributes_contact_attributes_email"]         ${asset_holder_email}
+  Input Text    //input[@id="prozorro_asset_holder_attributes_contact_attributes_fax_number"]    ${asset_holder_fax}
   # Save Auction - publish to CDB
-  Click Element                      ${locator.button.publish}
-  Wait Until Page Contains Element     //div[@class="blue_block top_border"]   60
+  Click Element    ${locator.button.publish}
+  #tabua.Пошук об’єкта МП по ідентифікатору    ${username}    UA-AR-P-2018-07-25-000020-2
+  Wait Until Page Contains Element    //body[contains(@class, "prozorro-assets-show")]    60
   # Get Ids
-  : FOR   ${INDEX}  IN RANGE    1   15
-  \   Sleep    3
-  \   Wait Until Page Contains Element     //div[@class="blue_block top_border"]
-  \   ${id_values}=      Get Webelements     //div[@class="blue_block top_border"]/div/div
-  \   ${uid_val}=   Get Text    //div[@class="blue_block top_border"]/div/div[contains(@class, 'auction_ua_id')]
-  \   ${TENDER_UAID}=   get_ua_id_asset   ${uid_val}
-  \   Exit For Loop If  '${TENDER_UAID}' > '0'
-  \   Sleep     10
-  \   Reload Page
-  Sleep    10
+  : FOR  ${INDEX}  IN RANGE    1   15
+  \    Sleep    3
+  \    Wait Until Page Contains Element    //div[@class="blue_block top_border"]
+  \    ${id_values}=    Get Webelements    //div[@class="blue_block top_border"]/div/div
+  \    ${uid_val}=    Get Text    //div[@class="blue_block top_border"]/div/div[contains(@class, 'auction_ua_id')]
+  \    ${TENDER_UAID}=    get_ua_id_asset    ${uid_val}
+  \    Exit For Loop If    '${TENDER_UAID}' > '0'
+  \    Sleep    10
+  \    Reload Page
+  Sleep    5
   Log To Console    ${TENDER_UAID}
   [Return]  ${TENDER_UAID}
 
 Додати наступний обєкт активу МП
   [Arguments]  ${item}
-  ${item_description}=                  Get From Dictionary         ${item}              description
-  ${item_quantity}=                     Get From Dictionary         ${item}              quantity
-  ${unit}=                              Get From Dictionary         ${item}              unit
-  ${unit_code}=                         Get From Dictionary         ${unit}              code
-  ${classification}=                    Get From Dictionary         ${item}              classification
-  ${classification_scheme}=             Get From Dictionary         ${classification}    scheme
-  ${classification_id}=                 Get From Dictionary         ${classification}    id
-  ${deliveryaddress}=                   Get From Dictionary         ${item}              address
-  ${deliveryaddress_postalcode}=        Get From Dictionary         ${deliveryaddress}   postalCode
-  ${deliveryaddress_countryname}=       Get From Dictionary         ${deliveryaddress}   countryName
-  ${deliveryaddress_streetaddress}=     Get From Dictionary         ${deliveryaddress}   streetAddress
-  ${deliveryaddress_region}=            Get From Dictionary         ${deliveryaddress}   region
-  ${deliveryaddress_locality}=          Get From Dictionary         ${deliveryaddress}   locality
-  ${registration_details}=              Get From Dictionary         ${item}              registrationDetails
-  ${registration_status}=               Get From Dictionary         ${registration_details}     status
+  ${item_description}=                 Get From Dictionary    ${item}               description
+  ${item_quantity}=                    Get From Dictionary    ${item}               quantity
+  ${unit}=                             Get From Dictionary    ${item}               unit
+  ${unit_code}=                        Get From Dictionary    ${unit}               code
+  ${classification}=                   Get From Dictionary    ${item}               classification
+  ${classification_scheme}=            Get From Dictionary    ${classification}     scheme
+  ${classification_id}=                Get From Dictionary    ${classification}     id
+  ${deliveryaddress}=                  Get From Dictionary    ${item}               address
+  ${deliveryaddress_postalcode}=       Get From Dictionary    ${deliveryaddress}    postalCode
+  ${deliveryaddress_countryname}=      Get From Dictionary    ${deliveryaddress}    countryName
+  ${deliveryaddress_streetaddress}=    Get From Dictionary    ${deliveryaddress}    streetAddress
+  ${deliveryaddress_region}=           Get From Dictionary    ${deliveryaddress}    region
+  ${deliveryaddress_locality}=         Get From Dictionary    ${deliveryaddress}    locality
+  ${registration_details}=             Get From Dictionary    ${item}               registrationDetails
+  ${registration_status}=              Get From Dictionary    ${registration_details}    status
 
   ${item_descr_field}=    Get Webelements    //textarea[contains(@id, 'prozorro_asset_items_attributes_') and contains(@id, '_description_ua')]
   Input Text    ${item_descr_field[-1]}    ${item_description}
@@ -209,7 +211,7 @@ Login
   Sleep   1
   ${classification_scheme_html}=    get_html_scheme    ${classification_scheme}
   ${classifier_field}=    Get Webelements    //span[@data-type="sp_codes"]
-  Click Element     ${classifier_field[-1]}
+  Click Element    ${classifier_field[-1]}
   Wait Until Page Contains Element    //input[@id="search_classification"]   10
   set_clacifier_find    ${classification_id}    ${classification_scheme_html}
   Click Element    //div[@class="ajax_block classification_type_sp_codes"]//span[@class='button btn_adding']
@@ -237,31 +239,19 @@ set_clacifier_find
 Пошук об’єкта МП по ідентифікатору
   [Arguments]  ${user_name}  ${asset_uaid}
   Switch browser    ${BROWSER_ALIAS}
-  :FOR    ${INDEX_N}    IN RANGE    1    15
-  \   Go To    ${BROKERS['tabua'].assetpage}
-  \   Wait Until Page Contains Element    id=aq    15
-  \   Input Text    id=aq    ${asset_uaid}
-  \   Click Element   //div[@class="columns search_button"]
-  \   ${auc_on_page}=    Run Keyword And return Status    Wait Until Element Is Visible    //div[contains(@class, "_ua_id")]    10
-  \   Exit For Loop If    ${auc_on_page}
-  \   Reload Page
-
-Це детальна сторінка?
-  [Arguments]  ${page_type}
-  ${is_detail_page}=    Run Keyword And Return Status    Page Should Contain Element    //div[contains(@class, 'prozorro-${page_type}s prozorro-${page_type}s-show')]
-  [Return]    ${is_detail_page}
-
-ID співпадає?
-  [Arguments]  ${object_id}
-  ${ua_id_present}=    Run Keyword And Return Status    Page Should Contain Element    //div[contains(@class, '_ua_id')]
-  ${current_id}=    Run Keyword If    ${ua_id_present}    Get Text    //div[contains(@class, '_ua_id')]
-  ${id_is_equal}=    Run Keyword And Return Status    Element Should Equal    '${current_id}' == '${object_id}'
-  [Return]    ${id_is_equal}
+  :FOR  ${INDEX_N}  IN RANGE    1    5
+  \    Go To    ${BROKERS['tabua'].assetpage}
+  \    Wait Until Page Contains Element    id=aq    10
+  \    Input Text    id=aq    ${asset_uaid}
+  \    Click Element    //div[@class="columns search_button"]
+  \    ${auc_on_page}=    Run Keyword And return Status    Wait Until Element Is Visible    //div[contains(@class, "_ua_id")]    10
+  \    Exit For Loop If    ${auc_on_page}
+  \    Reload Page
 
 Отримати інформацію із об'єкта МП
   [Arguments]  ${username}  ${tender_uaid}  ${field_name}
-  Run Keyword If    '${username}' == 'tabua_Viewer'    Sleep    30
-  tabua.Пошук об’єкта МП по ідентифікатору    ${username}    ${tender_uaid}
+  Run Keyword If    '${username}' == 'tabua_Viewer'    Sleep    15
+  Search Asset If Need    ${username}    ${tender_uaid}
   Run Keyword And Return    Отримати інформацію про МП ${field_name}
 
 Отримати інформацію про МП assetID
@@ -278,13 +268,8 @@ ID співпадає?
   [Return]  ${return_value}
 
 Отримати інформацію про МП status
-  ${status_elements} =    Get Webelements    //div[contains(@class, "small-4 columns auction_header_status status_")]/div
-  ${status_elements_length}=    Get Length    ${status_elements}
-  ${status}=    Run Keyword If  ${status_elements_length} == 1
-  ...    Get Text    ${status_elements[0]}
-  ...    ELSE    Get Text    ${status_elements[1]}
-  ${status}=    Convert To String    ${status}
-  ${return_value}=    reflect_status    ${status}
+  ${status} =    Get Element Attribute    //div[contains(@class, "auction_header_status")]@data-status
+  ${return_value}=    refactor_names    ${status}
   [Return]  ${return_value}
 
 Отримати інформацію про МП title
@@ -373,7 +358,7 @@ ID співпадає?
   Sleep    15
   Reload Page
   Sleep    2
-  Click Element    //div[@class="documents_tab tabs-title"]/a
+  Click Element    ${locator.button.documents_tab}
   Sleep    1
   ${file_name}=    Get Text    //a[contains(text(), '${doc_id}')]
   Sleep    1
@@ -382,7 +367,7 @@ ID співпадає?
   [Return]  ${file_name}
 
 Отримати інформацію про МП documents[0].documentType
-  Click Element    //div[@class="documents_tab tabs-title"]/a
+  Click Element    ${locator.button.documents_tab}
   ${doc_type}=    Get Text    //div[@class="document_description"]/div[@class="document_link"]/a
   ${return_value}=    convert_doc_type    ${doc_type}
   [Return]  ${return_value}
@@ -395,36 +380,33 @@ ID співпадає?
 
 Отримати інформацію про МП items.description
   [Arguments]  ${item_id}
-  ${description}=    Get Text    //li[contains(@data-item_title, '${item_id}')]//div[@class="item_title"]
+  ${description}=    Get Text    //li[contains(@data-item-title, '${item_id}')]//div[@class="item_title"]
   [Return]  ${description}
 
 Отримати інформацію про МП items.classification.scheme
   [Arguments]  ${item_id}
-  ${classification_scheme}=    Get Element Attribute    //li[contains(@data-item_title, "${item_id}")]//div[@class="item_classificator"]@data-classification_scheme
+  ${classification_scheme}=    Get Element Attribute    //li[contains(@data-item-title, "${item_id}")]//div[@class="item_classificator"]@data-classification_scheme
   [Return]  ${classification_scheme}
 
 Отримати інформацію про МП items.classification.id
   [Arguments]  ${item_id}
-  ${classification_id}=    Get Element Attribute    //li[contains(@data-item_title, "${item_id}")]//div[@class="item_classificator"]@data-classification_code
+  ${classification_id}=    Get Element Attribute    //li[contains(@data-item-title, "${item_id}")]//div[@class="item_classificator"]@data-classification_code
   [Return]  ${classification_id}
 
 Отримати інформацію про МП items.unit.name
   [Arguments]  ${item_id}
-  ${unit}=    Get Text    //li[contains(@data-item_title, "${item_id}")]//div[@class="small-10 small-offset-2 columns"]/span
-  ${unitname}=    split_space    ${unit}    1
-  ${return_value}=    get_select_unit_name    ${unitname}
+  ${return_value}=    Get Element Attribute    //li[contains(@data-item-title, "${item_id}")]//span[contains(@class, "item_unit_name")]@data-item-unit-name
   [Return]  ${return_value}
 
 Отримати інформацію про МП items.quantity
   [Arguments]  ${item_id}
-  ${unit}=    Get Text    //li[contains(@data-item_title, "${item_id}")]//div[@class="small-10 small-offset-2 columns"]/span
-  ${quantity}=    split_space    ${unit}    0
+  ${quantity}=    Get Text    //li[contains(@data-item-title, "${item_id}")]//span[contains(@class, "item_unit_quantity")]
   ${return_value}=    Convert To Number    ${quantity}
   [Return]  ${return_value}
 
 Отримати інформацію про МП items.registrationDetails.status
   [Arguments]  ${item_id}
-  ${status}=    Get Text    //li[contains(@data-item_title, "${item_id}")]//span[@class="item_registration_status"]
+  ${status}=    Get Text    //li[contains(@data-item-title, "${item_id}")]//span[@class="item_registration_status"]
   ${return_value}=    convert_item_status    ${status}
   [Return]  ${return_value}
 
@@ -641,30 +623,34 @@ ID співпадає?
   ${return_value}=    Get Element Attribute    //div[@class="blue_block auction_1"]//div[@class="small-6 columns auction_start_date"]@data-auction_start_date
   [Return]  ${return_value}
 
+Отримати інформацію про МП auctions[0].auctionID
+  :FOR  ${INDEX_N}  IN RANGE    1    15
+  \    Wait Until Page Contains Element    //body[contains(@class, "prozorro-lots-show")]    10
+  \    Click Element    //a[text()[contains(.,'Деталі аукціонів')]]
+  \    ${auction_id_present}=    Run Keyword And return Status    Wait Until Element Is Visible    //div[contains(@class, "auction_1")]//div[contains(@class, "auction_id")]/a    10
+  \    Exit For Loop If    ${auction_id_present}
+  \    Reload Page
+  ${return_value}=    Get Text    //div[contains(@class, "auction_1")]//div[contains(@class, "auction_id")]/a
+  [Return]  ${return_value}
+
 ###############################
 
 Завантажити ілюстрацію в об'єкт МП
   [Arguments]  ${username}  ${tender_uaid}  ${filepath}
-  ${at_auc_page}=    Run Keyword And return Status    Wait Until Element Is Visible	//a[text()[contains(.,'Змінити')]]	10
+  ${at_auc_page}=    Run Keyword And return Status    Wait Until Element Is Visible	//a[text()[contains(.,'Змінити')]]    10
   Run Keyword If    ${at_auc_page}    Click Element    //a[text()[contains(.,'Змінити')]]
   Wait Until Element Is Visible    //div[text()[contains(.,"Редагування об’єкта")]]    10
-  ${add_doc_button}=    Get Webelements    //a[@class="button btn_white documents_add add_fields"]
-  Click Element    ${add_doc_button[-1]}
-  Choose File    //input[@type="file"]    ${file_path}
-  Sleep    3
+  Add File To Form    ${file_path}    2
   Click Element    ${locator.button.publish}
   Sleep    10
 
 Завантажити документ в об'єкт МП з типом
   [Arguments]  ${username}  ${tender_uaid}  ${filepath}  ${doc_type}
-  tabua.Пошук об’єкта МП по ідентифікатору    ${username}    ${tender_uaid}
-  ${at_auc_page}=    Run Keyword And return Status    Wait Until Element Is Visible	//a[text()[contains(.,'Змінити')]]	10
+  Search Asset If Need    ${username}    ${tender_uaid}
+  ${at_auc_page}=    Run Keyword And return Status    Wait Until Element Is Visible	//a[text()[contains(.,'Змінити')]]    10
   Run Keyword If    ${at_auc_page}    Click Element    //a[text()[contains(.,'Змінити')]]
   Wait Until Element Is Visible    //div[text()[contains(.,"Редагування об’єкта")]]    10
-  ${add_doc_button}=    Get Webelements    //a[@class="button btn_white documents_add add_fields"]
-  Click Element    ${add_doc_button[-2]}
-  Choose File    //input[@type="file"]    ${file_path}
-  Sleep    3
+  Add File To Form    ${file_path}    1    '${doc_type}'
   Click Element    ${locator.button.publish}
   Sleep    20
 
@@ -672,7 +658,7 @@ ID співпадає?
 
 Внести зміни в об'єкт МП
   [Arguments]  ${username}  ${tender_uaid}  ${fieldname}  ${fieldvalue}
-  tabua.Пошук об’єкта МП по ідентифікатору    ${username}    ${tender_uaid}
+  Search Asset If Need    ${username}    ${tender_uaid}
   ${at_auc_page}=    Run Keyword And return Status    Wait Until Element Is Visible    //div[text()[contains(.,"Редагування об’єкта")]]    10
   tabua.Перейти на сторінку зміни параметрів активу    ${fieldname}    ${fieldvalue}
 
@@ -684,9 +670,9 @@ ID співпадає?
 
 Перевірити доступність зміни і змінити актив
   [Arguments]  ${field}	 ${value}
-  ${avail_change}=    Run Keyword And return Status    Wait Until Element Is Visible	//div[text()[contains(.,"Редагування об’єкта")]]	10
+  ${avail_change}=    Run Keyword And return Status    Wait Until Element Is Visible	//div[text()[contains(.,"Редагування об’єкта")]]    10
   Run Keyword    Змінити МП ${field}    ${value}
-  Click Element     ${locator.button.publish}
+  Click Element    ${locator.button.publish}
   Sleep    15
 
 Змінити МП title
@@ -710,15 +696,15 @@ ID співпадає?
 Внести зміни в актив об'єкта МП поле quantity
   [Arguments]  ${value}  ${item_id}
   ${fieldvalue}=    Convert To String    ${value}
-  Input text    //div[contains(@data-item_title, "${item_id}")]//input[contains(@id, 'prozorro_asset_items_attributes') and contains(@id, '_quantity')]    ${fieldvalue}
+  Input text    //div[contains(@data-item-title, "${item_id}")]//input[contains(@id, 'prozorro_asset_items_attributes') and contains(@id, '_quantity')]    ${fieldvalue}
 
 Внести зміни в актив об'єкта МП поле description
   [Arguments]  ${value}  ${item_id}
-  Input text    //div[contains(@data-item_title, "${item_id}")]//textarea[contains(@id, 'prozorro_asset_items_attributes') and contains(@id, '_description_ua')]    ${value}
+  Input text    //div[contains(@data-item-title, "${item_id}")]//textarea[contains(@id, 'prozorro_asset_items_attributes') and contains(@id, '_description_ua')]    ${value}
 
 Внести зміни в актив об'єкта МП поле registrationDetails.status
   [Arguments]  ${value}  ${item_id}
-  ${registration_status_field}=    Get Webelements    //div[contains(@data-item_title, "${item_id}")]//select[contains(@id, 'prozorro_asset_items_attributes_') and contains(@id, '_registration_details_attributes_status')]
+  ${registration_status_field}=    Get Webelements    //div[contains(@data-item-title, "${item_id}")]//select[contains(@id, 'prozorro_asset_items_attributes_') and contains(@id, '_registration_details_attributes_status')]
   Select From List By Value    ${registration_status_field[-1]}    ${value}
 
 Отримати кількість активів в об'єкті МП
@@ -730,28 +716,32 @@ ID співпадає?
 
 Додати актив до об'єкта МП
   [Arguments]  ${username}  ${asset_uaid}  ${item}
-  tabua.Пошук об’єкта МП по ідентифікатору    ${username}    ${asset_uaid}
+  Search Asset If Need    ${username}    ${asset_uaid}
   ${at_auc_page}=    Run Keyword And return Status    Wait Until Element Is Visible    //div[text()[contains(.,"Редагування об’єкта")]]    10
   Click Element    //a[text()[contains(.,'Змінити')]]
   Wait Until Element Is Visible    //div[text()[contains(.,"Редагування об’єкта")]]    10
-  Click Element    //a[@class='button btn_white add_auction_item add_fields'][last()]
+  Click Element    ${locator.button.add_item}[last()]
   Sleep    2
   Додати наступний обєкт активу МП    ${item}
   Click Element    ${locator.button.publish}
-  Sleep    20
+  Sleep    15
 
 Завантажити документ для видалення об'єкта МП
   [Arguments]  ${username}  ${asset_uaid}  ${file_path}
-  tabua.Пошук об’єкта МП по ідентифікатору    ${username}    ${asset_uaid}
+  Search Asset If Need    ${username}    ${asset_uaid}
   Click Element    //div[@class="button warning asset_cancel"]
   Wait Until Element Is Visible    ${locator.button.remove_from_active}    5
-  Run Keyword    Add_File_To_Form    ${file_path}
+  Add File To Form    ${file_path}
   Click Element    ${locator.button.remove_from_active}
   Sleep    5
 
 Видалити об'єкт МП
   [Arguments]  ${username}  ${asset_uaid}
-  tabua.Пошук об’єкта МП по ідентифікатору    ${username}    ${asset_uaid}
+  Search Asset If Need    ${username}    ${asset_uaid}
+  Click Element    ${locator.button.documents_tab}
+  Sleep    1
+  ${cancel_details_present}=    Page Should Contain Element    //div[contains(text(), 'Підстава для скасування')]
+  [Return]  ${cancel_details_present}
 
 ################# LOT #################
 
@@ -759,29 +749,29 @@ ID співпадає?
   [Arguments]  ${username}  ${tender_data}  ${asset_uaid}
   tabua.Пошук об’єкта МП по ідентифікатору    ${username}    ${asset_uaid}
   Click Element    //div[@class="auction_buttons"]/a
-  Wait Until Page Contains Element   id=new_prozorro_lot_   20
+  Wait Until Page Contains Element   id=new_prozorro_lot_    20
   ${repair_date}=    repair_start_date    ${tender_data.data.decisions[0].decisionDate}
-  Input Text    //input[contains(@id, "prozorro_lot_decisions_attributes_") and contains(@id, "_title_ua")]     ${tender_data.data.lotType}
-  Input Text    //input[contains(@id, "prozorro_lot_decisions_attributes_") and contains(@id, "_decision_id")]      ${tender_data.data.decisions[0].decisionID}
-  Input Text    //input[contains(@id, "prozorro_lot_decisions_attributes_") and contains(@id, "_date")]      ${repair_date}
+  Input Text    //input[contains(@id, "prozorro_lot_decisions_attributes_") and contains(@id, "_title_ua")]    ${tender_data.data.lotType}
+  Input Text    //input[contains(@id, "prozorro_lot_decisions_attributes_") and contains(@id, "_decision_id")]    ${tender_data.data.decisions[0].decisionID}
+  Input Text    //input[contains(@id, "prozorro_lot_decisions_attributes_") and contains(@id, "_date")]    ${repair_date}
   Click Element    ${locator.button.publish}
   Sleep    5
-  Wait Until Page Contains Element    //div[@class="blue_block top_border"]   60
+  Wait Until Page Contains Element    //div[@class="blue_block top_border"]    60
   ${LOT_UAID}=    Get Text    //div[@class="blue_block top_border"]/div/div[@class="small-6 columns auction_ua_id"]
   [Return]  ${LOT_UAID}
 
 Пошук лоту по ідентифікатору
   [Arguments]  ${username}  ${lot_uaid}
-  Switch browser   ${BROWSER_ALIAS}
-  :FOR   ${INDEX_N}  IN RANGE    1    15
-  \   Go To  ${BROKERS['tabua'].lotpage}
-  \   Wait Until Page Contains Element     id=lq  5
-  \   Input Text        id=lq   ${lot_uaid}
-  \   Click Element   //div[@class="columns search_button"]
-  \   ${auc_on_page}=    Run Keyword And return Status    Wait Until Element Is Visible    //div[contains(@class, "columns auction_ua_id")]    10
-  \   Exit For Loop If    ${auc_on_page}
-  \   Sleep   10
-  \   Reload Page
+  Switch browser    ${BROWSER_ALIAS}
+  :FOR  ${INDEX_N}  IN RANGE    1    5
+  \    Go To    ${BROKERS['tabua'].lotpage}
+  \    Wait Until Page Contains Element    id=lq    10
+  \    Input Text    id=lq    ${lot_uaid}
+  \    Click Element    //div[@class="columns search_button"]
+  \    ${auc_on_page}=    Run Keyword And return Status    Wait Until Element Is Visible    //div[contains(@class, "columns auction_ua_id")]    10
+  \    Exit For Loop If    ${auc_on_page}
+  \    Sleep    10
+  \    Reload Page
 
 Додати умови проведення аукціону
   [Arguments]  ${username}  ${auction}  ${index}  ${lot_uaid}
@@ -794,6 +784,7 @@ ID співпадає?
   ${start_price}=    Convert To String    ${auction.value.amount}
   Input Text    id=prozorro_lot_lot_auctions_attributes_0_value_attributes_amount    ${start_price}
   ${value_valueaddedtaxincluded}=    Convert To String    ${auction.value.valueAddedTaxIncluded}
+  Run Keyword If    '${value_valueaddedtaxincluded}' == 'True'    Click Element    //label[@for="prozorro_lot_lot_auctions_attributes_0_value_attributes_vat_included"]
   ${guarantee_amount}=    Convert To String    ${auction.guarantee.amount}
   Input Text    id=prozorro_lot_lot_auctions_attributes_0_guarantee_attributes_amount    ${guarantee_amount}
   ${registrationFee}=    Convert To String    ${auction.registrationFee.amount}
@@ -845,10 +836,7 @@ ID співпадає?
   tabua.Пошук лоту по ідентифікатору    ${username}    ${lot_uaid}
   Click Element    //a[text()[contains(.,'Змінити')]]
   Wait Until Element Is Visible    //div[text()[contains(.,'Редагування інформаційного повідомлення')]]    10
-  ${add_doc_button}=    Get Webelements    //a[@class="button btn_white documents_add add_fields"]
-  Click Element    ${add_doc_button[-1]}
-  Choose File    //input[@type="file"]    ${filepath}
-  Sleep    1
+  Add File To Form    ${file_path}    2
   Click Element    ${locator.button.publish}
   Sleep    10
 
@@ -858,31 +846,17 @@ ID співпадає?
   ${at_auc_page}=    Run Keyword And return Status    Wait Until Element Is Visible	//a[text()[contains(.,'Змінити')]]	  10
   Run Keyword If    ${at_auc_page}    Click Element    //a[text()[contains(.,'Змінити')]]
   Wait Until Element Is Visible    //div[text()[contains(.,'Редагування інформаційного повідомлення')]]    10
-  ${add_doc_button}=    Get Webelements    //a[@class="button btn_white documents_add add_fields"]
-  Click Element    ${add_doc_button[-2]}
-  Choose File    //input[@type="file"]    ${filepath}
-  Sleep    3
-  ${document_type_field}=    Get Webelements    //select[contains(@id, 'prozorro_lot_documents_attributes_') and contains(@id, '_document_type')]
-  ${document_type_value}=    correct_document_type_value    ${document_type}
-  Select From List By Value    ${document_type_field[-1]}    ${document_type_value}
-  Sleep    2
+  Add File To Form    ${file_path}    1    '${document_type}'
   Click Element    ${locator.button.publish}
   Sleep    20
 
 Завантажити документ в умови проведення аукціону
-  [Arguments]  ${username}  ${lot_uaid}  ${filepath}  ${documentType}  ${auction_index}
+  [Arguments]  ${username}  ${lot_uaid}  ${filepath}  ${document_type}  ${auction_index}
   tabua.Пошук лоту по ідентифікатору    ${username}    ${lot_uaid}
-  ${at_auc_page}=    Run Keyword And return Status    Wait Until Element Is Visible	//a[text()[contains(.,'Змінити')]]	  10
+  ${at_auc_page}=    Run Keyword And return Status    Wait Until Element Is Visible	//a[text()[contains(.,'Змінити')]]    10
   Run Keyword If    ${at_auc_page}    Click Element    //a[text()[contains(.,'Змінити')]]
-  Wait Until Element Is Visible	    //div[text()[contains(.,'Редагування інформаційного повідомлення')]]    10
-  ${add_doc_button}=    Get Webelements    //a[@class="button btn_white documents_add add_fields"]
-  Click Element    ${add_doc_button[-2]}
-  Choose File    //input[@type="file"]    ${filepath}
-  Sleep    3
-  ${document_type_field}=    Get Webelements    //select[contains(@id, 'prozorro_lot_documents_attributes_') and contains(@id, '_document_type')]
-  ${document_type_value}=    correct_document_type_value    ${document_type}
-  Select From List By Value    ${document_type_field[-1]}    ${document_type_value}
-  Sleep    2
+  Wait Until Element Is Visible    //div[text()[contains(.,'Редагування інформаційного повідомлення')]]    10
+  Add File To Form    ${file_path}    3    '${document_type}'
   Click Element    ${locator.button.publish}
   Sleep    20
 
@@ -913,7 +887,7 @@ ID співпадає?
 Внести зміни в актив лоту поле quantity
   [Arguments]  ${fieldvalue}  ${item_id}
   ${fieldvalue}=    Convert To String    ${fieldvalue}
-  Input Text    //div[contains(@data-item_title, "${item_id}")]//input[contains(@id, 'prozorro_lot_items_attributes') and contains(@id, '_quantity')]    ${fieldvalue}
+  Input Text    //div[contains(@data-item-title, "${item_id}")]//input[contains(@id, 'prozorro_lot_items_attributes') and contains(@id, '_quantity')]    ${fieldvalue}
 
 Внести зміни в умови проведення аукціону
   [Arguments]  ${username}  ${lot_uaid}  ${fieldname}  ${fieldvalue}  ${auc_num}
@@ -954,7 +928,7 @@ ID співпадає?
   Click Element    //div[@class="button warning asset_cancel"]
   Sleep    1
   Wait Until Element Is Visible    ${locator.button.remove_from_active}    10
-  Run Keyword    Add_File_To_Form    ${file_path}
+  Add File To Form    ${file_path}
   Click Element    ${locator.button.remove_from_active}
   Sleep    15
   tabua.Пошук лоту по ідентифікатору    ${username}    ${lot_uaid}
@@ -962,21 +936,337 @@ ID співпадає?
 Видалити лот
   [Arguments]  ${username}  ${lot_uaid}
   tabua.Пошук лоту по ідентифікатору    ${username}    ${lot_uaid}
-  Click Element    //div[@class="documents_tab tabs-title"]/a
+  Click Element    ${locator.button.documents_tab}
   Sleep    1
-  ${cancel_details}=    Get Text    //div[contains(text(), 'Підстава для скасування')]
+  ${cancel_details_present}=    Page Should Contain Element    //div[contains(text(), 'Підстава для скасування')]
+  [Return]  ${cancel_details_present}
+
+############### Procedure Methods ###############
+
+Пошук тендера по ідентифікатору
+  [Arguments]  ${username}  ${tender_uaid}
+  Switch browser    ${BROWSER_ALIAS}
+  :FOR  ${INDEX_N}  IN RANGE    1    5
+  \    Go To    ${BROKERS['tabua'].auctionpage}
+  \    Wait Until Page Contains Element    id=q    10
+  \    Input Text    id=q    ${tender_uaid}
+  \    Click Element    //div[@class="columns search_button"]
+  \    ${auc_on_page}=    Run Keyword And return Status    Wait Until Element Is Visible    //div[contains(@class, "_ua_id")]    10
+  \    Exit For Loop If    ${auc_on_page}
+  \    Reload Page
+
+Активувати процедуру
+  [Arguments]  ${username}  ${tender_uaid}
+  tabua.Пошук тендера по ідентифікатору    ${username}    ${tender_uaid}
+  : FOR  ${INDEX}  IN RANGE    1   15
+  \    Wait Until Page Contains Element    //body[contains(@class, "prozorro-auctions-show")]    10
+  \    ${status}=    Get Element Attribute    //div[contains(@class, "auction_header_status")]@data-status
+  \    ${real_status}=    refactor_names    ${status}
+  \    Exit For Loop If    '${real_status}' == 'active.tendering'
+  \    Sleep    10
+  \    Reload Page
+
+Скасувати закупівлю
+  [Arguments]  ${username}  ${tender_uaid}  ${cancellation_reason}  ${filepath}  ${file_description}
+  Run keyword    tabua.Пошук тендера по ідентифікатору    ${username}    ${tender_uaid}
+  Click Element    //a[contains(@class, "button") and contains(@class, "cancel_auction") and contains(@class, "add_fields")]
+  Wait Until Element Is Visible    //input[contains(@value, "Відмінити аукціон") and contains(@type, "submit")]    5
+  Input Text    //input[contains(@id, "cancellations_attributes") and contains(@id, "reason_")]    ${cancellation_reason}
+  Add File To Form    ${filepath}
+  Click Element    //input[contains(@value, "Відмінити аукціон") and contains(@type, "submit")]
+  Sleep    15
+
+Отримати інформацію із тендера
+  [Arguments]    ${username}    ${auction_uaid}    ${field_name}
+  Search Auction If Need    ${username}    ${auction_uaid}
+  ${return_value}=    Run keyword    Отримати значення поля ${field_name} аукціону
+  [Return]    ${return_value}
+
+Отримати значення поля status аукціону
+  ${status} =    Get Element Attribute    //div[contains(@class, "auction_header_status")]@data-status
+  ${return_value}=    refactor_names    ${status}
+  [Return]  ${return_value}
+
+Отримати значення поля auctionID аукціону
+  ${return_value}=    Get Text    //div[contains(@class, "auction_ua_id")]
+  [Return]  ${return_value}
+
+Отримати значення поля title аукціону
+  ${return_value}=    Get Text    //span[contains(@class, "auction_short_title_text")]
+  [Return]  ${return_value}
+
+Отримати значення поля description аукціону
+  ${return_value}=    Get Text    //div[contains(@class, "main_tab_detail")]//div[contains(@class, "auction_description_text")]
+  [Return]  ${return_value}
+
+Отримати значення поля minNumberOfQualifiedBids аукціону
+  Click Element    //a[contains(@id, "auction_tab_detail_")]
+  ${min_number_of_bids}=    Get Text    //div[contains(@class, "number_of_bids")]/span
+  ${return_value}=    Convert To Number    ${min_number_of_bids}
+  [Return]  ${return_value}
+
+Отримати значення поля procurementMethodType аукціону
+  ${procurement_method_type}=    Get Element Attribute    //div[contains(@class, "auction_type_")]@data-procurement-method-type
+  ${return_value}=    refactor_names    ${procurement_method_type}
+  [Return]  ${return_value}
+
+Отримати значення поля procuringEntity.name аукціону
+  ${return_value}=    Get Element Attribute    //div[contains(@class, "organization_entity_name")]@data-organization-name
+  [Return]  ${return_value}
+
+Отримати значення поля cancellations[0].reason аукціону
+  ${return_value}=    Get Text    //div[contains(@class, "document_description_on_cancellation")]
+  [Return]  ${return_value}
+
+Отримати значення поля value.amount аукціону
+  ${value_amount}=    Get Text    //span[contains(@class, "start_value_detail")]//span[@class="amount"]
+  ${return_value}=    Convert To Number    ${value_amount.replace(' ','').replace(',','.')}
+  [Return]  ${return_value}
+
+Отримати значення поля minimalStep.amount аукціону
+  Click Element    //a[contains(@id, "auction_tab_detail_")]
+  ${minimal_step_amount}=    Get Text    //div[contains(@class, "minimal_step_amount")]/span[@class="amount"]
+  ${return_value}=    Convert To Number    ${minimal_step_amount.replace(' ','').replace(',','.')}
+  [Return]  ${return_value}
+
+Отримати значення поля guarantee.amount аукціону
+  Click Element    //a[contains(@id, "auction_tab_detail_")]
+  ${guarantee_amount}=    Get Text    //div[contains(@class, "guarantee_amount")]//span[@class="amount"]
+  ${return_value}=    Convert To Number    ${guarantee_amount.replace(' ','').replace(',','.')}
+  [Return]  ${return_value}
+
+Отримати значення поля registrationFee.amount аукціону
+  Click Element    //a[contains(@id, "auction_tab_detail_")]
+  ${registration_fee}=    Get Text    //div[contains(@class, "registration_fee")]/span[@class="amount"]
+  ${return_value}=    Convert To Number    ${registration_fee.replace(' ','').replace(',','.')}
+  [Return]  ${return_value}
+
+Отримати значення поля tenderPeriod.endDate аукціону
+  ${return_value}=    Get Element Attribute    //span[@class="entry_submission_end_detail"]@data-tender-end
+  [Return]  ${return_value}
+
+Отримати інформацію із предмету
+  [Arguments]  ${username}  ${auction_uaid}  ${item_id}  ${field_name}
+  tabua.Пошук тендера по ідентифікатору    ${username}    ${auction_uaid}
+  ${return_value}=    Run KeyWord    Отримати інформацію з items.${field_name} аукціону    ${item_id}
+  [Return]  ${return_value}
+
+Отримати інформацію з items.description аукціону
+  [Arguments]  ${item_id}
+  ${description}=    Get Text    //li[contains(@data-item-title, '${item_id}')]//div[@class="item_title"]
+  ${return_value}=    Set Variable    ${description}
+  [Return]  ${return_value}
+
+Отримати інформацію з items.unit.name аукціону
+  [Arguments]  ${item_id}
+  ${return_value}=    Get Element Attribute    //li[contains(@data-item-title, "${item_id}")]//span[contains(@class, "item_unit_name")]@data-item-unit-name
+  [Return]  ${return_value}
+
+Отримати інформацію з items.quantity аукціону
+  [Arguments]  ${item_id}
+  ${quantity}=    Get Text    //li[contains(@data-item-title, "${item_id}")]//span[contains(@class, "item_unit_quantity")]
+  ${return_value}=    Convert To Number    ${quantity}
+  [Return]  ${return_value}
+
+Отримати інформацію із запитання
+  [Arguments]  ${username}  ${auction_uaid}  ${question_id}  ${field_name}
+  Run keyword    tabua.Пошук тендера по ідентифікатору    ${username}    ${auction_uaid}
+  ${return_value}=    Run KeyWord    Отримати інформацію з question.${field_name} аукціону    ${question_id}
+  [Return]  ${return_value}
+
+Отримати інформацію з question.title аукціону
+  [Arguments]  ${question_id}
+  ${return_value}=    Get Text    //li[contains(@data-question-title, "${question_id}")]/div[contains(@class, "question_title")]
+  [Return]  ${return_value}
+
+Отримати інформацію з question.description аукціону
+  [Arguments]  ${question_id}
+  ${return_value}=    Get Element Attribute    //li[contains(@data-question-title, "${question_id}")]/div[contains(@class, "question_text")]@data-question-text
+  [Return]  ${return_value}
+
+Отримати інформацію з question.answer аукціону
+  [Arguments]  ${question_id}
+  :FOR  ${INDEX_N}  IN RANGE    1    10
+  \  ${answer_present}=    Run Keyword And return Status    Wait Until Element Is Visible    //li[contains(@data-question-title, "${question_id}")]//div[contains(@class, "question_answer_text")]    5
+  \  Exit For Loop If    ${answer_present}
+  \  Sleep   10
+  \  Reload Page
+  ${return_value}=    Get Element Attribute    //li[contains(@data-question-title, "${question_id}")]//div[contains(@class, "question_answer_text")]@data-answer-text
+  [Return]  ${return_value}
+
+Отримати інформацію із документа
+  [Arguments]  ${username}  ${auction_uaid}  ${doc_id}  ${field}
+  Run keyword    tabua.Пошук тендера по ідентифікатору    ${username}    ${auction_uaid}
+  Click Element    ${locator.button.documents_tab}
   Sleep    1
-  Click Element    //div[@class="main_tab tabs-title"]/a
+  ${file_name}=    Get Text    //a[contains(text(), '${doc_id}')]
+  [Return]  ${file_name}
+
+Подати цінову пропозицію
+  [Arguments]  ${username}  ${auction_uaid}  ${bid}
+  ${has_value}=    check_has_value    ${bid.data}
+  tabua.Пошук тендера по ідентифікатору    ${username}    ${auction_uaid}
+  Wait Until Element Is Visible    //div[@class="auction_buttons"]/span[contains(text(), "Подати заяву")]    5
+  Click Element    //div[@class="auction_buttons"]/span[contains(text(), "Подати заяву")]
+  Run Keyword If    ${has_value}    tabua.Ввести цінову пропозицію    ${bid}
+  ${confirm_webelements}=    Get Webelements    //div[contains(@class, "confirm_rules")]
+  ${conf_len}=    Get Length    ${confirm_webelements}
+  :FOR  ${INDEX_C}  IN RANGE  0  ${conf_len}
+  \  Run Keyword If    '${bid.data.qualified}' == 'True'    Click Element    ${confirm_webelements[${INDEX_C}]}
+  Click Element    //input[@type="submit" and contains(@value, "Створити")]
+  Sleep     5
+  Reload Page
+  :FOR  ${INDEX_N}  IN RANGE    1    5
+  \  ${button_change}=    Run Keyword And return Status    Wait Until Element Is Visible    //span[@class="button to_modal" and contains(text(), "Змінити")]    10
+  \  Exit For Loop If    ${button_change}
+  \  Sleep   5
+  \  Reload Page
+  ${result}=    Element Should Be Visible    //span[@class="button to_modal" and contains(text(), "Змінити")]
+  [Return]  ${result}
+
+Ввести цінову пропозицію
+  [Arguments]  ${bid_data}
+  ${amount_bid}=    Convert To String    ${bid_data.data.value.amount}
+  Clear Element Text    //input[@id="prozorro_bid_value_attributes_amount"]
+  Input Text    //input[@id="prozorro_bid_value_attributes_amount"]    ${amount_bid}
+
+Змінити цінову пропозицію
+  [Arguments]  ${username}  ${auction_uaid}  ${field_name}  ${field_value}
+  tabua.Пошук тендера по ідентифікатору    ${username}    ${auction_uaid}
+  Click Element    //span[contains(@class, "button") and contains(text(), "Змінити")]
+  Wait Until Element Is Visible    //input[@type="submit" and contains(@value, "Опублікувати")]    10
+  ${new_bid_amount}=    Convert To String    ${field_value}
+  Clear Element Text    //input[@id="prozorro_bid_value_attributes_amount"]
+  Input Text    //input[@id="prozorro_bid_value_attributes_amount"]    ${new_bid_amount}
+  Click Element    //input[@type="submit" and contains(@value, "Опублікувати")]
+  Sleep    5
+
+Завантажити документ в ставку
+  [Arguments]  ${username}  ${file_path}  ${auction_uaid}  ${doc_type}=commercial_proposal
+  tabua.Пошук тендера по ідентифікатору    ${username}    ${auction_uaid}
+  Click Element    //span[contains(@class, "button") and contains(text(), "Змінити")]
+  Wait Until Element Is Visible    //input[@type="submit" and contains(@value, "Опублікувати")]    10
+  Add File To Form    ${file_path}
+  Click Element    //input[@type="submit" and contains(@value, "Опублікувати")]
+  Sleep    5
+
+Отримати інформацію із пропозиції
+  [Arguments]  ${username}  ${auction_uaid}  ${field}
+  Run keyword    tabua.Пошук тендера по ідентифікатору    ${username}    ${auction_uaid}
+  ${bid_amount}=    Get Text    //div[contains(@class, "your_bid_amount")]/span[contains(@class, "amount")]
+  ${return_value}=    Convert To Number    ${bid_amount.replace(' ','').replace(',','.')}
+  [Return]  ${return_value}
+
+Задати запитання на тендер
+  [Arguments]  ${username}  ${auction_uaid}  ${question_data}
+  Заповнити форму питання основними даними    ${username}    ${auction_uaid}    ${question_data}
+  Click Element    //input[@type="submit" and contains(@value, "Відправити")]
+  Check if question on page by id    ${question_data.data.title}
+
+Задати запитання на предмет
+  [Arguments]  ${username}  ${auction_uaid}  ${item_id}  ${question_data}
+  Заповнити форму питання основними даними    ${username}    ${auction_uaid}    ${question_data}
+  Click Element    //form[@id="new_prozorro_question"]//span[@class="select2-selection__arrow"]
   Sleep    1
-  tabua.Пошук лоту по ідентифікатору    ${username}    ${lot_uaid}
+  Input Text    //input[@class="select2-search__field"]    ${item_id}
+  Sleep    1
+  Click Element    //li[contains(@id, "select2-prozorro_question_item_id-result-") and contains(text(), ${item_id})]
+  Sleep    1
+  Click Element    //input[@type="submit" and contains(@value, "Відправити")]
+  Check if question on page by id    ${question_data.data.title}
+
+Заповнити форму питання основними даними
+  [Arguments]  ${username}  ${auction_uaid}  ${question_data}
+  tabua.Пошук тендера по ідентифікатору    ${username}    ${auction_uaid}
+  Wait Until Element Is Visible    //div[contains(@class, "questions")]//span[contains(text(), "Задати запитання")]    5
+  Click Element    //div[contains(@class, "questions")]//span[contains(text(), "Задати запитання")]
+  Wait Until Element Is Visible    id=prozorro_question_title    5
+  Input Text    id=prozorro_question_title    ${question_data.data.title}
+  Input Text    id=prozorro_question_description    ${question_data.data.description}
+
+Check if question on page by id
+  [Arguments]  ${question_title}
+  : FOR  ${INDEX}  IN RANGE    1    15
+  \  ${text}=    Get Matching Xpath Count    //ul[@class="questions_list"]//div[@class="question_title" and contains(text(),"${question_title}")]
+  \  Exit For Loop If    '${text}' > '0'
+  \  Sleep    5
+  \  Reload Page
+
+Відповісти на запитання
+  [Arguments]  ${username}  ${auction_uaid}  ${answer_data}  ${question_id}
+  tabua.Пошук тендера по ідентифікатору    ${username}    ${auction_uaid}
+  Wait Until Element Is Visible    //div[contains(@class, "questions")]//span[contains(text(), "Дати відповідь")]    5
+  Click Element    //div[contains(@class, "questions")]//li[contains(@data-question-title, "${question_id}")]//span[contains(text(), "Дати відповідь")]
+  Wait Until Element Is Visible    id=prozorro_question_answer    5
+  Input Text    id=prozorro_question_answer    ${answer_data.data.answer}
+  Click Element    //input[@type="submit" and contains(@value, "Відправити")]
+  Sleep    5
+
+Скасувати цінову пропозицію
+  [Arguments]  ${username}  ${auction_uaid}
+  tabua.Пошук тендера по ідентифікатору    ${username}    ${auction_uaid}
+  Click Element    //span[contains(@class, "button") and contains(text(), "Відкликати")]
+  Wait Until Element Is Visible    //input[@type="submit" and contains(@value, "Підтвердити скасування")]    10
+  Click Element    //label[@for="prozorro_bid_confirm_cancellation"]
+  Click Element    //input[@type="submit" and contains(@value, "Підтвердити скасування")]
+  Sleep    5
+
+Отримати посилання на аукціон для учасника
+  [Arguments]  ${username}  ${auction_uaid}  ${lot_id}=${Empty}
+  tabua.Пошук тендера по ідентифікатору    ${username}    ${auction_uaid}
+  :FOR  ${INDEX_N}  IN RANGE    1    15
+  \  ${bid_auction_link_present}=    Run Keyword And return Status    Wait Until Element Is Visible    //div[contains(@class, "auction_buttons")//div[contains(@class, "bid_auction_link")]/a    5
+  \  Exit For Loop If    ${bid_auction_link_present}
+  \  Sleep   10
+  \  Reload Page
+  ${return_value}=    Get Element Attribute    //div[contains(@class, "auction_buttons")//div[contains(@class, "bid_auction_link")]/a@href
+  [Return]  ${return_value}
+
+Отримати посилання на аукціон для глядача
+  [Arguments]  ${username}  ${auction_uaid}  ${lot_id}=${Empty}
+  tabua.Пошук тендера по ідентифікатору    ${username}    ${auction_uaid}
+  ${return_value}=    Get Element Attribute    //div[contains(@class, "auction_buttons")//span[contains(@class, "auction_link")]/a@href
+  [Return]  ${return_value}
+
 
 
 ############### Helper Methods ###############
 
-Add_File_To_Form
-  [Arguments]  ${filepath}  ${file_button_index}=0
-  ${file_buttons}=    Get Webelements    //a[@class="button btn_white documents_add add_fields"]
-  Click Element    ${file_buttons[${file_button_index}]}
+Add File To Form
+  [Arguments]  ${file_path}  ${file_button_index}=1  ${document_type}=''
+  Click Element    xpath=(//a[@class="button btn_white documents_add add_fields"])[${file_button_index}]
   Sleep    1
   Choose File    //input[@type="file"]    ${file_path}
-  Sleep    2
+  Sleep    1
+  Run Keyword If    ${document_type}    Select Document Type    ${document_type}    ${file_button_index}
+  Sleep    1
+
+Select Document Type
+  [Arguments]  ${document_type}  ${file_button_index}=1
+  ${document_type_field}=    Get Webelement    xpath=(//a[@class="button btn_white documents_add add_fields"])[${file_button_index}]//preceding-sibling::ul//select[contains(@id, "_document_type")]
+  ${document_type_value}=    correct_document_type_value    ${document_type}
+  Click Element    xpath=(//a[@class="button btn_white documents_add add_fields"])[${file_button_index}]//preceding-sibling::ul//span[@class="select2-selection__arrow"]
+  Click Element    //ul[contains(@id, "select2-") and contains(@id, "_document_type-results")]//li[contains(@id, ${document_type_value})]
+
+Search Asset If Need
+  [Arguments]  ${username}  ${asset_uaid}
+  ${current_page_is_this_object_page}=    Identical ID?    ${asset_uaid}
+  ${current_page_is_details_page}=    Details Page?    asset
+  Run Keyword Unless    ${current_page_is_this_object_page} or ${current_page_is_details_page}    tabua.Пошук об’єкта МП по ідентифікатору    ${username}    ${asset_uaid}
+
+Search Auction If Need
+  [Arguments]  ${username}  ${auction_uaid}
+  ${current_page_is_this_object_page}=    Identical ID?    ${auction_uaid}
+  ${current_page_is_details_page}=    Details Page?    auction
+  Run Keyword Unless    ${current_page_is_this_object_page} or ${current_page_is_details_page}    tabua.Пошук тендера по ідентифікатору    ${username}    ${auction_uaid}
+
+Details Page?
+  [Arguments]  ${page_type}
+  ${is_detail_page}=    Run Keyword And Return Status    Page Should Contain Element    //body[contains(@class, 'prozorro-${page_type}s') and contains(@class, 'prozorro-${page_type}s-show')]
+  [Return]  ${is_detail_page}
+
+Identical ID?
+  [Arguments]  ${object_id}
+  ${ua_id_present}=    Run Keyword And Return Status    Page Should Contain Element    //div[contains(@class, '_ua_id')]
+  ${id_is_equal}=    Run Keyword If    ${ua_id_present} == ${True}    Run Keyword And Return Status    Element Text Should Be    //div[contains(@class, '_ua_id')]    ${object_id}
+  [Return]  ${id_is_equal}

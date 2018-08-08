@@ -62,28 +62,6 @@ def get_select_unit_code(raw_code):
     }
     return unit_name_dictionary[raw_code]
 
-def get_select_unit_name(raw_name):
-    unit_name_dictionary = {
-        u'м²': u'метр кв.',
-        u'м³': u'метри куб.',
-        u'м': u'метри',
-        u'посл': u"послуга",
-        u'шт': u'штука',
-        u'кг': u'кілограми',
-        u'км': u'кілометри',
-        u'рейс': u'рейси',
-        u'га': u'гектар',
-        u"грн": u"UAH",
-        u"посл": u"послуга",
-        u'год': u'години',
-        u'г': u'грами',
-        u'бл': u'блок',
-        u'т': u'тони',
-        u'ящ': u'ящик',
-        u'уп': u'упаковка'
-    }
-    return unit_name_dictionary[raw_name]
-
 def repair_start_date(date_s):
     d_list = str(date_s).split('-')
     return '{0}.{1}.{2}'.format(d_list[2][:2], d_list[1], d_list[0])
@@ -134,18 +112,16 @@ def get_decision_id(item_index, tag):
     }
     return ID_DICT[tag].format(item_index)
 
-def reflect_status(mp_status):
-    mp_status = mp_status.strip()
-    STATUS_DICT = {
-        u'Опубліковано': 'pending',
-        u'Опубліковано\nОчікування інформаційного повідомлення': 'pending',
-        u'Виключено з переліку': 'deleted',
-        u"Об’єкт виключено": 'deleted',
-        u'Публікація інформаційного повідомлення': 'composing',
-        u'Об’єкт виставлено на продаж': 'salable',
-        u'Аукціон': 'auction'
+def refactor_names(our_name):
+    our_name = our_name.strip()
+    NAMES_DICT = {
+        'active_auction': 'active.auction',
+        'active_tendering': 'active.tendering',
+        'sellout_english': 'sellout.english',
     }
-    return STATUS_DICT.get(mp_status)
+    if our_name in NAMES_DICT:
+        return NAMES_DICT[our_name]
+    return our_name
 
 def get_decision_date(number_date):
     return_value = number_date.split(u'від')[1].strip()
@@ -195,3 +171,6 @@ def add_five_days(old_date):
     zone = old_date[-6:]
     new_date = datetime.datetime.strftime(dt_5, fs) + zone
     return new_date
+
+def check_has_value(dict):
+    return 'value' in dict

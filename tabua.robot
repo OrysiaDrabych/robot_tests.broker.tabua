@@ -1015,7 +1015,19 @@ set_clacifier_find
   [Return]  ${return_value}
 
 Отримати значення поля cancellations[0].reason аукціону
-  ${return_value}=    Get Text    //div[contains(@class, "document_description_on_cancellation")]
+  :FOR  ${INDEX_N}  IN RANGE    1    3
+  \  ${cancellation_present}=    Run Keyword And return Status    Wait Until Element Is Visible    //div[contains(@class, "cancellation_reason")]    15
+  \  Exit For Loop If    ${cancellation_present}
+  \  Reload Page
+  ${return_value}=    Get Text    //div[contains(@class, "cancellation_reason")]
+  [Return]  ${return_value}
+
+Отримати значення поля cancellations[0].status аукціону
+  :FOR  ${INDEX_N}  IN RANGE    1    3
+  \  ${cancellation_present}=    Run Keyword And return Status    Wait Until Element Is Visible    //div[contains(@class, "cancellation_reason")]    15
+  \  Exit For Loop If    ${cancellation_present}
+  \  Reload Page
+  ${return_value}=    Get Element Attribute    //div[contains(@class, "cancellation_reason")]@data-cancellation-status
   [Return]  ${return_value}
 
 Отримати значення поля value.amount аукціону

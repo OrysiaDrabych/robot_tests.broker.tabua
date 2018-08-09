@@ -120,7 +120,7 @@ def refactor_names(our_name):
         'sellout_english': 'sellout.english',
     }
     if our_name in NAMES_DICT:
-        return NAMES_DICT[our_name]
+        return NAMES_DICT[our_name].decode('UTF-8')
     return our_name
 
 def get_decision_date(number_date):

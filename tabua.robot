@@ -1088,11 +1088,19 @@ set_clacifier_find
 
 Отримати інформацію з question.title аукціону
   [Arguments]  ${question_id}
+  :FOR  ${INDEX_N}  IN RANGE    1    3
+  \  ${answer_present}=    Run Keyword And return Status    Wait Until Element Is Visible    //li[contains(@data-question-title, "${question_id}")]/div[contains(@class, "question_title")]    10
+  \  Exit For Loop If    ${answer_present}
+  \  Reload Page
   ${return_value}=    Get Text    //li[contains(@data-question-title, "${question_id}")]/div[contains(@class, "question_title")]
   [Return]  ${return_value}
 
 Отримати інформацію з question.description аукціону
   [Arguments]  ${question_id}
+  :FOR  ${INDEX_N}  IN RANGE    1    3
+  \  ${answer_present}=    Run Keyword And return Status    Wait Until Element Is Visible    //li[contains(@data-question-title, "${question_id}")]/div[contains(@class, "question_text")]    10
+  \  Exit For Loop If    ${answer_present}
+  \  Reload Page
   ${return_value}=    Get Element Attribute    //li[contains(@data-question-title, "${question_id}")]/div[contains(@class, "question_text")]@data-question-text
   [Return]  ${return_value}
 
@@ -1227,17 +1235,20 @@ Check if question on page by id
   [Arguments]  ${username}  ${auction_uaid}  ${lot_id}=${Empty}
   tabua.Пошук тендера по ідентифікатору    ${username}    ${auction_uaid}
   :FOR  ${INDEX_N}  IN RANGE    1    15
-  \  ${bid_auction_link_present}=    Run Keyword And return Status    Wait Until Element Is Visible    //div[contains(@class, "auction_buttons")//div[contains(@class, "bid_auction_link")]/a    5
+  \  ${bid_auction_link_present}=    Run Keyword And return Status    Wait Until Element Is Visible    //div[contains(@class, "auction_buttons")]//div[contains(@class, "bid_auction_link")]/a    20
   \  Exit For Loop If    ${bid_auction_link_present}
-  \  Sleep   10
   \  Reload Page
-  ${return_value}=    Get Element Attribute    //div[contains(@class, "auction_buttons")//div[contains(@class, "bid_auction_link")]/a@href
+  ${return_value}=    Get Element Attribute    //div[contains(@class, "auction_buttons")]//div[contains(@class, "bid_auction_link")]/a@href
   [Return]  ${return_value}
 
 Отримати посилання на аукціон для глядача
   [Arguments]  ${username}  ${auction_uaid}  ${lot_id}=${Empty}
   tabua.Пошук тендера по ідентифікатору    ${username}    ${auction_uaid}
-  ${return_value}=    Get Element Attribute    //div[contains(@class, "auction_buttons")//span[contains(@class, "auction_link")]/a@href
+  :FOR  ${INDEX_N}  IN RANGE    1    15
+  \  ${bid_auction_link_present}=    Run Keyword And return Status    Wait Until Element Is Visible    //div[contains(@class, "auction_buttons")]//span[contains(@class, "auction_link")]/a    20
+  \  Exit For Loop If    ${bid_auction_link_present}
+  \  Reload Page
+  ${return_value}=    Get Element Attribute    //div[contains(@class, "auction_buttons")]//span[contains(@class, "auction_link")]/a@href
   [Return]  ${return_value}
 
 

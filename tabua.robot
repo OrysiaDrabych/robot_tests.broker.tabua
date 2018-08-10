@@ -71,11 +71,14 @@ Login
   Input Text    id=user_email    ${USERS.users['${ARGUMENTS[0]}'].login}
   Input Text    id=user_password    ${USERS.users['${ARGUMENTS[0]}'].password}
   Click Element    //form[@id="new_user"]//input[@type="submit"]
-  Sleep    1
+  Sleep    2
   Go To    ${BROKERS['tabua'].startpage}
-  Wait Until Page Contains Element    //span[@class="button menu_btn is_logged"]    5
+  :FOR  ${INDEX_N}  IN RANGE    1    2
+  \  ${is_logged}=    Run Keyword And return Status    Wait Until Element Is Visible    //span[@class="button menu_btn is_logged"]    10
+  \  Exit For Loop If    ${is_logged}
+  \  Reload Page
+  Wait Until Page Contains Element    //span[@class="button menu_btn is_logged"]    10
   Log To Console    Success logging in as Some one - ${ARGUMENTS[0]}${\n}
-
 
 Оновити сторінку з тендером
   [Arguments]  ${user_name}  ${tender_id}
@@ -249,9 +252,9 @@ set_clacifier_find
   \    Reload Page
 
 Отримати інформацію із об'єкта МП
-  [Arguments]  ${username}  ${tender_uaid}  ${field_name}
+  [Arguments]  ${username}  ${asset_uaid}  ${field_name}
   Run Keyword If    '${username}' == 'tabua_Viewer'    Sleep    15
-  Search Asset If Need    ${username}    ${tender_uaid}
+  tabua.Пошук об’єкта МП по ідентифікатору    ${username}    ${asset_uaid}
   Run Keyword And Return    Отримати інформацію про МП ${field_name}
 
 Отримати інформацію про МП assetID
@@ -645,8 +648,8 @@ set_clacifier_find
   Sleep    10
 
 Завантажити документ в об'єкт МП з типом
-  [Arguments]  ${username}  ${tender_uaid}  ${filepath}  ${doc_type}
-  Search Asset If Need    ${username}    ${tender_uaid}
+  [Arguments]  ${username}  ${asset_uaid}  ${filepath}  ${doc_type}
+  tabua.Пошук об’єкта МП по ідентифікатору    ${username}    ${asset_uaid}
   ${at_auc_page}=    Run Keyword And return Status    Wait Until Element Is Visible	//a[text()[contains(.,'Змінити')]]    10
   Run Keyword If    ${at_auc_page}    Click Element    //a[text()[contains(.,'Змінити')]]
   Wait Until Element Is Visible    //div[text()[contains(.,"Редагування об’єкта")]]    10
@@ -657,9 +660,9 @@ set_clacifier_find
 ################################
 
 Внести зміни в об'єкт МП
-  [Arguments]  ${username}  ${tender_uaid}  ${fieldname}  ${fieldvalue}
-  Search Asset If Need    ${username}    ${tender_uaid}
-  ${at_auc_page}=    Run Keyword And return Status    Wait Until Element Is Visible    //div[text()[contains(.,"Редагування об’єкта")]]    10
+  [Arguments]  ${username}  ${asset_uaid}  ${fieldname}  ${fieldvalue}
+  tabua.Пошук об’єкта МП по ідентифікатору    ${username}    ${asset_uaid}
+  Wait Until Element Is Visible    //a[text()[contains(.,"Змінити")]]    10
   tabua.Перейти на сторінку зміни параметрів активу    ${fieldname}    ${fieldvalue}
 
 Перейти на сторінку зміни параметрів активу
@@ -716,7 +719,7 @@ set_clacifier_find
 
 Додати актив до об'єкта МП
   [Arguments]  ${username}  ${asset_uaid}  ${item}
-  Search Asset If Need    ${username}    ${asset_uaid}
+  tabua.Пошук об’єкта МП по ідентифікатору    ${username}    ${asset_uaid}
   ${at_auc_page}=    Run Keyword And return Status    Wait Until Element Is Visible    //div[text()[contains(.,"Редагування об’єкта")]]    10
   Click Element    //a[text()[contains(.,'Змінити')]]
   Wait Until Element Is Visible    //div[text()[contains(.,"Редагування об’єкта")]]    10
@@ -728,7 +731,7 @@ set_clacifier_find
 
 Завантажити документ для видалення об'єкта МП
   [Arguments]  ${username}  ${asset_uaid}  ${file_path}
-  Search Asset If Need    ${username}    ${asset_uaid}
+  tabua.Пошук об’єкта МП по ідентифікатору    ${username}    ${asset_uaid}
   Click Element    //div[@class="button warning asset_cancel"]
   Wait Until Element Is Visible    ${locator.button.remove_from_active}    5
   Add File To Form    ${file_path}
@@ -737,7 +740,7 @@ set_clacifier_find
 
 Видалити об'єкт МП
   [Arguments]  ${username}  ${asset_uaid}
-  Search Asset If Need    ${username}    ${asset_uaid}
+  tabua.Пошук об’єкта МП по ідентифікатору    ${username}    ${asset_uaid}
   Click Element    ${locator.button.documents_tab}
   Sleep    1
   ${cancel_details_present}=    Page Should Contain Element    //div[contains(text(), 'Підстава для скасування')]
@@ -947,28 +950,28 @@ set_clacifier_find
   [Arguments]  ${username}  ${tender_uaid}
   Switch browser    ${BROWSER_ALIAS}
   :FOR  ${INDEX_N}  IN RANGE    1    5
-  \    Go To    ${BROKERS['tabua'].auctionpage}
-  \    Wait Until Page Contains Element    id=q    10
-  \    Input Text    id=q    ${tender_uaid}
-  \    Click Element    //div[@class="columns search_button"]
-  \    ${auc_on_page}=    Run Keyword And return Status    Wait Until Element Is Visible    //div[contains(@class, "_ua_id")]    10
-  \    Exit For Loop If    ${auc_on_page}
-  \    Reload Page
+  \  Go To    ${BROKERS['tabua'].auctionpage}
+  \  Wait Until Page Contains Element    id=q    10
+  \  Input Text    id=q    ${tender_uaid}
+  \  Click Element    //div[@class="columns search_button"]
+  \  ${auc_on_page}=    Run Keyword And return Status    Wait Until Element Is Visible    //div[contains(@class, "_ua_id")]    10
+  \  Exit For Loop If    ${auc_on_page}
+  \  Reload Page
 
 Активувати процедуру
   [Arguments]  ${username}  ${tender_uaid}
   tabua.Пошук тендера по ідентифікатору    ${username}    ${tender_uaid}
   : FOR  ${INDEX}  IN RANGE    1   15
-  \    Wait Until Page Contains Element    //body[contains(@class, "prozorro-auctions-show")]    10
-  \    ${status}=    Get Element Attribute    //div[contains(@class, "auction_header_status")]@data-status
-  \    ${real_status}=    refactor_names    ${status}
-  \    Exit For Loop If    '${real_status}' == 'active.tendering'
-  \    Sleep    10
-  \    Reload Page
+  \  Wait Until Page Contains Element    //body[contains(@class, "prozorro-auctions-show")]    10
+  \  ${status}=    Get Element Attribute    //div[contains(@class, "auction_header_status")]@data-status
+  \  ${real_status}=    refactor_names    ${status}
+  \  Exit For Loop If    '${real_status}' == 'active.tendering'
+  \  Sleep    10
+  \  Reload Page
 
 Скасувати закупівлю
-  [Arguments]  ${username}  ${tender_uaid}  ${cancellation_reason}  ${filepath}  ${file_description}
-  Run keyword    tabua.Пошук тендера по ідентифікатору    ${username}    ${tender_uaid}
+  [Arguments]  ${username}  ${auction_uaid}  ${cancellation_reason}  ${filepath}  ${file_description}
+  tabua.Пошук тендера по ідентифікатору    ${username}    ${auction_uaid}
   Click Element    //a[contains(@class, "button") and contains(@class, "cancel_auction") and contains(@class, "add_fields")]
   Wait Until Element Is Visible    //input[contains(@value, "Відмінити аукціон") and contains(@type, "submit")]    5
   Input Text    //input[contains(@id, "cancellations_attributes") and contains(@id, "reason_")]    ${cancellation_reason}
@@ -978,7 +981,8 @@ set_clacifier_find
 
 Отримати інформацію із тендера
   [Arguments]    ${username}    ${auction_uaid}    ${field_name}
-  Search Auction If Need    ${username}    ${auction_uaid}
+  Run Keyword If    '${field_name}' == 'status'    Sleep    15
+  tabua.Пошук тендера по ідентифікатору    ${username}    ${auction_uaid}
   ${return_value}=    Run keyword    Отримати значення поля ${field_name} аукціону
   [Return]    ${return_value}
 
@@ -1082,7 +1086,7 @@ set_clacifier_find
 
 Отримати інформацію із запитання
   [Arguments]  ${username}  ${auction_uaid}  ${question_id}  ${field_name}
-  Run keyword    tabua.Пошук тендера по ідентифікатору    ${username}    ${auction_uaid}
+  tabua.Пошук тендера по ідентифікатору    ${username}    ${auction_uaid}
   ${return_value}=    Run KeyWord    Отримати інформацію з question.${field_name} аукціону    ${question_id}
   [Return]  ${return_value}
 
@@ -1116,7 +1120,7 @@ set_clacifier_find
 
 Отримати інформацію із документа
   [Arguments]  ${username}  ${auction_uaid}  ${doc_id}  ${field}
-  Run keyword    tabua.Пошук тендера по ідентифікатору    ${username}    ${auction_uaid}
+  tabua.Пошук тендера по ідентифікатору    ${username}    ${auction_uaid}
   Click Element    ${locator.button.documents_tab}
   Sleep    1
   ${file_name}=    Get Text    //a[contains(text(), '${doc_id}')]
@@ -1139,7 +1143,7 @@ set_clacifier_find
   :FOR  ${INDEX_N}  IN RANGE    1    5
   \  ${button_change}=    Run Keyword And return Status    Wait Until Element Is Visible    //span[@class="button to_modal" and contains(text(), "Змінити")]    10
   \  Exit For Loop If    ${button_change}
-  \  Sleep   5
+  \  Sleep    5
   \  Reload Page
   ${result}=    Element Should Be Visible    //span[@class="button to_modal" and contains(text(), "Змінити")]
   [Return]  ${result}
@@ -1172,7 +1176,7 @@ set_clacifier_find
 
 Отримати інформацію із пропозиції
   [Arguments]  ${username}  ${auction_uaid}  ${field}
-  Run keyword    tabua.Пошук тендера по ідентифікатору    ${username}    ${auction_uaid}
+  tabua.Пошук тендера по ідентифікатору    ${username}    ${auction_uaid}
   ${bid_amount}=    Get Text    //div[contains(@class, "your_bid_amount")]/span[contains(@class, "amount")]
   ${return_value}=    Convert To Number    ${bid_amount.replace(' ','').replace(',','.')}
   [Return]  ${return_value}
@@ -1270,26 +1274,3 @@ Select Document Type
   ${document_type_value}=    correct_document_type_value    ${document_type}
   Click Element    xpath=(//a[@class="button btn_white documents_add add_fields"])[${file_button_index}]//preceding-sibling::ul//span[@class="select2-selection__arrow"]
   Click Element    //ul[contains(@id, "select2-") and contains(@id, "_document_type-results")]//li[contains(@id, ${document_type_value})]
-
-Search Asset If Need
-  [Arguments]  ${username}  ${asset_uaid}
-  ${current_page_is_this_object_page}=    Identical ID?    ${asset_uaid}
-  ${current_page_is_details_page}=    Details Page?    asset
-  Run Keyword Unless    ${current_page_is_this_object_page} or ${current_page_is_details_page}    tabua.Пошук об’єкта МП по ідентифікатору    ${username}    ${asset_uaid}
-
-Search Auction If Need
-  [Arguments]  ${username}  ${auction_uaid}
-  ${current_page_is_this_object_page}=    Identical ID?    ${auction_uaid}
-  ${current_page_is_details_page}=    Details Page?    auction
-  Run Keyword Unless    ${current_page_is_this_object_page} or ${current_page_is_details_page}    tabua.Пошук тендера по ідентифікатору    ${username}    ${auction_uaid}
-
-Details Page?
-  [Arguments]  ${page_type}
-  ${is_detail_page}=    Run Keyword And Return Status    Page Should Contain Element    //body[contains(@class, 'prozorro-${page_type}s') and contains(@class, 'prozorro-${page_type}s-show')]
-  [Return]  ${is_detail_page}
-
-Identical ID?
-  [Arguments]  ${object_id}
-  ${ua_id_present}=    Run Keyword And Return Status    Page Should Contain Element    //div[contains(@class, '_ua_id')]
-  ${id_is_equal}=    Run Keyword If    ${ua_id_present} == ${True}    Run Keyword And Return Status    Element Text Should Be    //div[contains(@class, '_ua_id')]    ${object_id}
-  [Return]  ${id_is_equal}

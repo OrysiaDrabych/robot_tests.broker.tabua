@@ -118,6 +118,7 @@ def refactor_names(our_name):
         'active_auction': 'active.auction',
         'active_tendering': 'active.tendering',
         'sellout_english': 'sellout.english',
+        'active_qualification': 'active.qualification',
     }
     if our_name in NAMES_DICT:
         return NAMES_DICT[our_name].decode('UTF-8')

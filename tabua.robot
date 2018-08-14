@@ -1258,7 +1258,7 @@ Check if question on page by id
 Отримати кількість авардів в тендері
   [Arguments]  ${username}  ${auction_uaid}
   tabua.Пошук тендера по ідентифікатору    ${username}    ${auction_uaid}
-  ${return_value}=    Get Element Count    //ul[contains(@class, "bids_list")]/li[contains(@id, "award_id_")]
+  ${return_value}=    Get Matching Xpath Count    //ul[contains(@class, "bids_list")]/li[contains(@id, "award_id_")]
   [Return]  ${return_value}
 
 Завантажити протокол погодження в авард
@@ -1314,7 +1314,7 @@ Check if question on page by id
 
 Завантажити протокол скасування в контракт
   [Arguments]  ${username}  ${auction_uaid}  ${file_path}  ${contract_num}
-  ${real_award_index}=    Real Award Index    ${contract_num}
+  ${real_award_index}=    Real Award Index With Contract
   tabua.Знайти авард по індексу    ${username}    ${auction_uaid}    ${real_award_index}
   Click Element    //span[contains(@class, "button") and contains(text(), "Завантажити акт про відмову учасника")]
   Wait Until Element Is Visible    //form[contains(@class, "_decline")]    10
@@ -1332,7 +1332,7 @@ Check if question on page by id
 
 Завантажити угоду до тендера
   [Arguments]  ${username}  ${auction_uaid}  ${contract_num}  ${file_path}
-  ${real_award_index}=    Real Award Index    ${contract_num}
+  ${real_award_index}=    Real Award Index With Contract
   tabua.Знайти авард по індексу    ${username}    ${auction_uaid}    ${real_award_index}
   Click Element    //span[contains(@class, "button") and contains(text(), "Завантажити договір")]
   Wait Until Element Is Visible    //form[contains(@class, "contract_upload")]    10
@@ -1342,7 +1342,8 @@ Check if question on page by id
 
 Підтвердити підписання контракту
   [Arguments]  ${username}  ${auction_uaid}  ${contract_num}
-  ${real_award_index}=    Real Award Index    ${contract_num}
+  Sleep    15
+  ${real_award_index}=    Real Award Index With Contract
   tabua.Знайти авард по індексу    ${username}    ${auction_uaid}    ${real_award_index}
   Click Element    //span[contains(@class, "button") and contains(text(), "Завершити електронні торги")]
   Wait Until Element Is Visible    //div[contains(@class, "contract_confirm")]    10
@@ -1358,9 +1359,9 @@ Check if question on page by id
   \  Exit For Loop If    ${awards_present}
   \  Sleep    15
   \  tabua.Пошук тендера по ідентифікатору    ${username}    ${auction_uaid}
-  ${awards}=    Get WebElements    //div[contains(@class, "auction_bids")]/ul[contains(@class, "bids_list")]/li
-  Click Element    ${awards[${award_index}]}
-  Sleep  1
+  ${award_num}=    Set Variable    ${award_index + 1}
+  Click Element    //div[contains(@class, "auction_bids")]/ul[contains(@class, "bids_list")]/li[${award_num}]
+  Sleep    1
 
 ############### Helper Methods ###############
 
@@ -1380,8 +1381,11 @@ Select Document Type
   Click Element    xpath=(//a[@class="button btn_white documents_add add_fields"])[${file_button_index}]//preceding-sibling::ul//span[@class="select2-selection__arrow"]
   Click Element    //ul[contains(@id, "select2-") and contains(@id, "_document_type-results")]//li[contains(@id, ${document_type_value})]
 
-Real Award Index
-  [Arguments]  ${contract_num}
-  ${real_award_index}=    Set Variable    1
-  ${real_award_index}=    Run Keyword If    ${contract_num} == -1    Set Variable    0
+Real Award Index With Contract
+  ${awards_count}=    Get Matching Xpath Count    //ul[contains(@class, "bids_list")]/li[contains(@id, "award_id_")]
+  :FOR  ${INDEX_N}  IN RANGE    0    ${awards_count}
+  \  ${element_num}=    Set Variable    ${INDEX_N + 1}
+  \  ${contract_present}=    Run Keyword And return Status    Wait Until Page Contains Element    //ul[contains(@class, "bids_list")]/li[contains(@id, "award_id_")][${element_num}]//span[contains(@class, "button") and (contains(text(), "Завантажити договір") or contains(text(), "Завершити електронні торги"))]
+  \  ${real_award_index}=    Run Keyword If    ${contract_present}    Set Variable    ${INDEX_N}
+  \  Exit For Loop If    ${contract_present}
   [Return]  ${real_award_index}

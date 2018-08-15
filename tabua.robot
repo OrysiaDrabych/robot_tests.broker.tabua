@@ -1309,7 +1309,7 @@ Check if question on page by id
   Click Element    //label[contains(@for, "prozorro_award_confirm_cancellation")]
   ${file_path}  ${file_name}  ${file_content}=  create_fake_doc
   Add File To Form    ${file_path}
-  Click Element    //input[contains(@type, "submit") and contains(text(), "Підтвердити скасування")]
+  Click Element    //input[contains(@type, "submit") and contains(@value, "Підтвердити скасування")]
   Sleep    5
 
 Завантажити протокол скасування в контракт
@@ -1359,7 +1359,7 @@ Check if question on page by id
   \  Exit For Loop If    ${awards_present}
   \  Sleep    15
   \  tabua.Пошук тендера по ідентифікатору    ${username}    ${auction_uaid}
-  ${award_num}=    Set Variable    ${award_index + 1}
+  ${award_num}=    Evaluate    ${award_index} + 1
   Click Element    //div[contains(@class, "auction_bids")]/ul[contains(@class, "bids_list")]/li[${award_num}]
   Sleep    1
 

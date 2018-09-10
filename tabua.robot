@@ -757,8 +757,8 @@ set_clacifier_find
   Input Text    //input[contains(@id, "prozorro_lot_decisions_attributes_") and contains(@id, "_date")]    ${repair_date}
   Click Element    ${locator.button.publish}
   Sleep    5
-  Wait Until Page Contains Element    //div[@class="blue_block top_border"]    60
-  ${LOT_UAID}=    Get Text    //div[@class="blue_block top_border"]/div/div[@class="small-6 columns auction_ua_id"]
+  Wait Until Page Contains Element    //a[contains(@class, "button") and contains(text(), "Уточнити та активувати")]    30
+  ${LOT_UAID}=    Get Text    //div[contains(@class, "main_tab_detail")]//div[contains(@class, "_ua_id")]
   [Return]  ${LOT_UAID}
 
 Пошук лоту по ідентифікатору
@@ -1259,6 +1259,7 @@ Check if question on page by id
   [Arguments]  ${username}  ${auction_uaid}
   tabua.Пошук тендера по ідентифікатору    ${username}    ${auction_uaid}
   ${return_value}=    Get Matching Xpath Count    //ul[contains(@class, "bids_list")]/li[contains(@id, "award_id_")]
+  ${return_value}=    Convert To Number    ${return_value}
   [Return]  ${return_value}
 
 Завантажити протокол погодження в авард
@@ -1363,6 +1364,113 @@ Check if question on page by id
   Click Element    //div[contains(@class, "auction_bids")]/ul[contains(@class, "bids_list")]/li[${award_num}]
   Sleep    1
 
+############### Contracting ###############
+
+Активувати контракт
+  [Arguments]  ${username}  ${contract_uaid}
+  # не вимагає дій від майданчика, тому робимо просто використання будь-якого ківорду
+  # робимо паузу, щоб контракти встригли сформуватись та адекватно обробились системою
+  Sleep    180
+  tabua.Пошук номера аукціона за номером договору    ${username}    ${contract_uaid}
+
+Отримати інформацію із договору
+  [Arguments]  ${username}  ${contract_uaid}  ${field_name}
+  tabua.Знайти авард з договором    ${username}    ${contract_uaid}
+  ${return_value}=    Run KeyWord    Отримати інформацію з поля ${field_name} договору
+  [Return]  ${return_value}
+
+Отримати інформацію з поля status договору
+  ${return_value}=    Get Element Attribute    //div[contains(@class, "auction_header_status")]//i@data-contract-status
+  [Return]  ${return_value}
+
+Отримати інформацію з поля milestones[${index}].status договору
+  ${status}=   Get Element Attribute   //div[contains(@class, "milestones_list")]//div[contains(@class, "milestone_${index}"]//div[contains(@class, "milestone_block"]@data-milestone-status
+  [Return]   ${status}
+
+Отримати інформацію з активу в договорі
+  [Arguments]  ${username}  ${contract_uaid}  ${item_id}  ${field_name}
+  ${auction_uaid}=    tabua.Пошук номера аукціона за номером договору    ${username}    ${contract_uaid}
+  tabua.Пошук тендера по ідентифікатору    ${username}    ${auction_uaid}
+  ${return_value}=    Run KeyWord    Отримати інформацію про МП items.${field_name}    ${item_id}
+  [Return]  ${return_value}
+
+Вказати дату отримання оплати
+  [Arguments]  ${username}  ${contract_uaid}  ${dateMet}  ${milestone_index}
+  tabua.Знайти авард з договором    ${username}    ${contract_uaid}
+  Click Element    //span[contains(@class, "button") and contains(text(), "Договір оплачено")]
+  Wait Until Element Is Visible    //form[contains(@class, "edit_prozorro_milestone")]    10
+  Input Text    id=prozorro_milestone_date_met    ${dateMet}
+  Click Element    //input[@type="submit" and contains(@value, "Відправити")]
+  Sleep    5
+
+Підтвердити відсутність оплати
+  [Arguments]  ${username}  ${contract_uaid}  ${milestone_index}
+  tabua.Знайти авард з договором    ${username}    ${contract_uaid}
+  Click Element    //span[contains(@class, "button") and contains(text(), "Оплата відсутня")]
+  Wait Until Element Is Visible    //form[contains(@class, "edit_prozorro_milestone")]    10
+  Click Element    //input[@type="submit" and contains(@value, "Відправити")]
+  Sleep    5
+
+Завантажити наказ про завершення приватизації
+  [Arguments]  ${username}  ${contract_uaid}  ${file_path}
+  tabua.Знайти авард з договором    ${username}    ${contract_uaid}
+  Click Element    //span[contains(@class, "button") and contains(text(), "Приватизація об’єкта завершена")]
+  Wait Until Element Is Visible    //form[contains(@class, "edit_prozorro_milestone")]    10
+  Sleep    5
+
+Вказати дату прийняття наказу
+  [Arguments]  ${username}  ${contract_uaid}  ${dateMet}
+  ${file_path}  ${file_name}  ${file_content}=  create_fake_doc
+  Add File To Form    ${file_path}
+  Input Text    id=prozorro_milestone_date_met    ${dateMet}
+  Click Element    //input[@type="submit" and contains(@value, "Відправити")]
+  Sleep    10
+
+Підтвердити відсутність наказу про приватизацію
+  [Arguments]  ${username}  ${contract_uaid}  ${file_path}
+  tabua.Знайти авард з договором    ${username}    ${contract_uaid}
+  Click Element    //span[contains(@class, "button") and contains(text(), "Наказ про завершення приватизації відсутній")]
+  Wait Until Element Is Visible    //form[contains(@class, "edit_prozorro_milestone")]    10
+  Add File To Form    ${file_path}
+  Click Element    //input[@type="submit" and contains(@value, "Відправити")]
+  Sleep    10
+
+Вказати дату виконання умов контракту
+  [Arguments]  ${username}  ${contract_uaid}  ${dateMet}
+  tabua.Знайти авард з договором    ${username}    ${contract_uaid}
+  Click Element    //span[contains(@class, "button") and contains(text(), "Умови продажу виконано")]
+  Wait Until Element Is Visible    //form[contains(@class, "edit_prozorro_milestone")]    10
+  Input Text    id=prozorro_milestone_date_met    ${dateMet}
+  ${file_path}  ${file_name}  ${file_content}=  create_fake_doc
+  Add File To Form    ${file_path}
+  Click Element    //input[@type="submit" and contains(@value, "Відправити")]
+  Sleep    5
+
+Підтвердити невиконання умов приватизації
+  [Arguments]  ${username}  ${contract_uaid}
+  tabua.Знайти авард з договором    ${username}    ${contract_uaid}
+  Click Element    //span[contains(@class, "button") and contains(text(), "Умови продажу не виконано")]
+  Wait Until Element Is Visible    //form[contains(@class, "edit_prozorro_milestone")]    10
+  ${file_path}  ${file_name}  ${file_content}=  create_fake_doc
+  Add File To Form    ${file_path}
+  Click Element    //input[@type="submit" and contains(@value, "Відправити")]
+  Sleep    10
+
+Пошук номера аукціона за номером договору
+  [Arguments]  ${username}  ${contract_uaid}
+  # We have to read artefact-file because searching by contact_uaid not realized in our system
+  ${file_path}=  Get Variable Value  ${ARTIFACT_FILE}  artifact.yaml
+  ${ARTIFACT}=  load_data_from  ${file_path}
+  ${auction_uaid}=    Run Keyword If    '${ARTIFACT.contract_uaid}' == '${contract_uaid}'    Set Variable    ${ARTIFACT.tender_uaid}
+  ...  ELSE    Set Variable    ${contract_uaid}
+  [Return]  ${auction_uaid}
+
+Знайти авард з договором
+  [Arguments]  ${username}  ${contract_uaid}
+  ${auction_uaid}=    tabua.Пошук номера аукціона за номером договору    ${username}    ${contract_uaid}
+  ${real_award_index}=    Real Award Index With Milestones
+  tabua.Знайти авард по індексу    ${username}    ${auction_uaid}    ${real_award_index}
+
 ############### Helper Methods ###############
 
 Add File To Form
@@ -1388,4 +1496,13 @@ Real Award Index With Contract
   \  ${contract_present}=    Run Keyword And return Status    Wait Until Page Contains Element    //ul[contains(@class, "bids_list")]/li[contains(@id, "award_id_")][${element_num}]//span[contains(@class, "button") and (contains(text(), "Завантажити договір") or contains(text(), "Завершити електронні торги"))]
   \  ${real_award_index}=    Run Keyword If    ${contract_present}    Set Variable    ${INDEX_N}
   \  Exit For Loop If    ${contract_present}
+  [Return]  ${real_award_index}
+
+Real Award Index With Milestones
+  ${awards_count}=    Get Matching Xpath Count    //ul[contains(@class, "bids_list")]/li[contains(@id, "award_id_")]
+  :FOR  ${INDEX_N}  IN RANGE    0    ${awards_count}
+  \  ${element_num}=    Set Variable    ${INDEX_N + 1}
+  \  ${milestones_present}=    Run Keyword And return Status    Wait Until Page Contains Element    //ul[contains(@class, "bids_list")]/li[contains(@id, "award_id_")][${element_num}]//div[contains(@class, "milestones_list")]
+  \  ${real_award_index}=    Run Keyword If    ${milestones_present}    Set Variable    ${INDEX_N}
+  \  Exit For Loop If    ${milestones_present}
   [Return]  ${real_award_index}

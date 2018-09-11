@@ -66,13 +66,13 @@ ${locator.asset_description}               id=prozorro_asset_description_ua
 
 Login
   [Arguments]  @{ARGUMENTS}
-  #  Logs in as Auction owner, who can create Fin auctions
-  Wait Until Page Contains Element    id=user_password    20
+  Go To    ${BROKERS['tabua'].startpage}
+  Wait Until Element Is Visible    //div[contains(@class, "login_form_button")]    20
+  Click Element    //div[contains(@class, "login_form_button")]
+  Wait Until Page Contains Element    id=user_password    10
   Input Text    id=user_email    ${USERS.users['${ARGUMENTS[0]}'].login}
   Input Text    id=user_password    ${USERS.users['${ARGUMENTS[0]}'].password}
   Click Element    //form[@id="new_user"]//input[@type="submit"]
-  Sleep    2
-  Go To    ${BROKERS['tabua'].startpage}
   :FOR  ${INDEX_N}  IN RANGE    1    2
   \  ${is_logged}=    Run Keyword And return Status    Wait Until Element Is Visible    //span[@class="button menu_btn is_logged"]    10
   \  Exit For Loop If    ${is_logged}
